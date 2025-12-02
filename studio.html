@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creator Studio | Social App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .media-preview {
+            max-width: 100%;
+            height: 400px;
+            background-color: #f3f4f6;
+            border-radius: 0.5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        .media-preview img, .media-preview iframe {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="max-w-3xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
+        <header class="mb-8">
+            <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight">
+                Creator Studio 🚀
+            </h1>
+            <p class="mt-2 text-lg text-gray-500">
+                Post new content to the public feed.
+            </p>
+            <a href="view.html" class="text-indigo-600 hover:text-indigo-800 font-medium text-sm mt-1 inline-block">
+                View Public Feed &rarr;
+            </a>
+        </header>
+
+        <div class="bg-white shadow-xl rounded-lg p-6 mb-8">
+            <h2 class="text-xl font-semibold text-gray-800 mb-3">Post Title / Company Name</h2>
+            <input type="text" id="companyName" placeholder="Enter Company Name or Post Title" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-lg" required>
+        </div>
+
+        <div class="bg-white shadow-xl rounded-lg p-6 mb-8">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Media Sharing</h2>
+            
+            <label for="driveLink" class="block text-sm font-medium text-gray-700">Google Drive Public Share Link</label>
+            <input type="url" id="driveLink" placeholder="Paste image or video public share link here..." class="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500" required>
+            
+            <div id="loadingIndicator" class="hidden mt-4 text-center text-indigo-600">
+                <svg class="animate-spin h-5 w-5 mr-3 inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Processing link...
+            </div>
+
+            <div id="mediaPreview" class="media-preview mt-6 hidden">
+                </div>
+            
+            <p id="statusMessage" class="mt-4 text-sm text-gray-500 hidden"></p>
+
+            <button id="publishBtn" class="mt-6 w-full py-3 px-4 border border-transparent rounded-lg shadow-md text-lg font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150 ease-in-out disabled:opacity-50" disabled>
+                Publish Post
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // REPLACE THIS WITH YOUR DEPLOYED GOOGLE APPS SCRIPT WEB APP URL
+        const SCRIPT_URL = "YOUR_APPS_SCRIPT_WEB_APP_URL"; 
+
+        const driveLinkInput = document.getElementById('driveLink');
+        const companyNameInput = document.getElementById('companyName');
+        const mediaPreview = document.getElementById('mediaPreview');
+        const publishBtn = document.getElementById('publishBtn');
+        const statusMessage = document.getElementById('statusMessage');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+
+        let postData = {
+            mediaId: null,
+            previewUrl: null,
+            type: null
+        };
+        
+        // --- Helper Functions ---
+
+        /**
+         * Extracts the File ID from a Google Drive share link and determines the media type.
+         * @param {string} url The Google Drive share URL.
+         * @returns {Object|null} {mediaId, previewUrl, type} or null if invalid.
+         */
+        function processDriveLink(url) {
+            // Regex to find the file ID in different formats: /d/FILE_ID/view, id=FILE_ID, /file/d/FILE_ID/
+            const idMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
+            if (!idMatch) return null;
+
+            const mediaId = idMatch[1];
+            
+            // Simple heuristic to determine type (could be improved with API/file extension check)
+            // For this simple app, we'll assume a file is an image if it's not explicitly a /file/d/ link (video/other media)
+            
+            let type = 'image';
+            let previewUrl = `https://drive.google.com/uc?export=view&id=${mediaId}`; // Standard direct image view URL
+
+            // The 'preview' URL structure is often preferred for embedding videos/documents
+            if (url.includes('/file/d/')) {
+                type = 'video';
+                previewUrl = `https://drive.google.com/file/d/${mediaId}/preview`;
+            }
+            
+            return { mediaId, previewUrl, type };
+        }
+
+        /**
+         * Renders the media preview.
+         * @param {string} url The direct preview URL.
+         * @param {string} type The media type ('image' or 'video').
+         */
+        function renderPreview(url, type) {
+            mediaPreview.innerHTML = '';
+            mediaPreview.classList.remove('hidden');
+
+            if (type === 'image') {
+                const img = document.createElement('img');
+                img.src = url;
+                img.alt = "Image Preview";
+                mediaPreview.appendChild(img);
+                statusMessage.textContent = "Image ready for publish.";
+            } else if (type === 'video') {
+                const iframe = document.createElement('iframe');
+                iframe.src = url;
+                iframe.width = "100%";
+                iframe.height = "100%";
+                iframe.frameBorder = "0";
+                iframe.allow = "autoplay";
+                iframe.allowFullscreen = true;
+                mediaPreview.appendChild(iframe);
+                statusMessage.textContent = "Video ready for publish (may require public sharing).";
+            }
+            statusMessage.classList.remove('hidden');
+        }
+
+        // --- Event Listeners ---
+
+        driveLinkInput.addEventListener('input', () => {
+            const link = driveLinkInput.value.trim();
+            mediaPreview.classList.add('hidden');
+            statusMessage.classList.add('hidden');
+            publishBtn.disabled = true;
+
+            if (!link) {
+                postData = { mediaId: null, previewUrl: null, type: null };
+                return;
+            }
+
+            loadingIndicator.classList.remove('hidden');
+
+            // Debounce the input to avoid excessive processing
+            clearTimeout(window.linkDebounce);
+            window.linkDebounce = setTimeout(() => {
+                loadingIndicator.classList.add('hidden');
+                
+                const result = processDriveLink(link);
+
+                if (result) {
+                    postData = result;
+                    renderPreview(result.previewUrl, result.type);
+                    publishBtn.disabled = false;
+                } else {
+                    statusMessage.textContent = "Invalid Google Drive share link format.";
+                    statusMessage.classList.remove('hidden');
+                }
+            }, 500); 
+        });
+
+        publishBtn.addEventListener('click', async () => {
+            const companyName = companyNameInput.value.trim();
+            if (!companyName || !postData.previewUrl) {
+                alert("Please enter a Company Name and a valid media link.");
+                return;
+            }
+
+            publishBtn.disabled = true;
+            publishBtn.textContent = "Publishing...";
+
+            const finalPost = {
+                companyName: companyName,
+                type: postData.type,
+                mediaId: postData.mediaId,
+                previewUrl: postData.previewUrl,
+                timestamp: new Date().toISOString()
+            };
+
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(finalPost)
+                });
+
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    alert(`Post published successfully! PostID: ${result.postId}`);
+                    // Clear inputs on success
+                    driveLinkInput.value = '';
+                    mediaPreview.classList.add('hidden');
+                    statusMessage.classList.add('hidden');
+                    postData = { mediaId: null, previewUrl: null, type: null };
+                } else {
+                    alert(`Publish failed: ${result.message}`);
+                }
+            } catch (error) {
+                console.error('Fetch error:', error);
+                alert('A network error occurred. Check the Apps Script URL and deployment.');
+            } finally {
+                publishBtn.disabled = false;
+                publishBtn.textContent = "Publish Post";
+            }
+        });
+
+    </script>
+</body>
+</html>
