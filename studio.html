@@ -69,7 +69,7 @@
 
     <script>
         // REPLACE THIS WITH YOUR DEPLOYED GOOGLE APPS SCRIPT WEB APP URL
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyO4xG-nSsA2sxoyVIwnd6F7iTEpOm6LwZdWrP-QUL0cFXCdntkc_AIbBihVMmaSKQi/exec"; 
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbydHdo4ebsCuYIilHOlU3hZAlUfAlxRhGW2lUtTfBkkz3li24xhCZfWaVITqTqzs-Xs0Q/exec"; 
 
         const driveLinkInput = document.getElementById('driveLink');
         const companyNameInput = document.getElementById('companyName');
@@ -194,14 +194,13 @@
             };
 
             try {
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(finalPost)
-                });
+               const response = await fetch(SCRIPT_URL, {
+  method: 'POST',
+  body: JSON.stringify(finalPost)
+});
 
-                const result = await response.json();
+const result = await response.json();
+
 
                 if (result.status === 'success') {
                     alert(`Post published successfully! PostID: ${result.postId}`);
