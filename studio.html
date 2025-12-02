@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Creator Studio | Social App</title>
+    <link rel="manifest" href="/manifest.json">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .media-preview {
@@ -222,5 +224,115 @@ const result = await response.json();
         });
 
     </script>
+    <script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/service-worker.js")
+      .then(reg => console.log("Service Worker registered", reg))
+      .catch(err => console.error("SW failed", err));
+  });
+}
+</script>
+<script>
+let deferredPrompt;
+
+// Create install banner UI
+const installBox = document.createElement("div");
+installBox.id = "installBox";
+installBox.innerHTML = `
+  <div style="
+    position:fixed;
+    bottom:200px;
+    left:50%;
+    transform:translateX(-50%);
+    background:#111827;
+    color:white;
+    padding:16px 18px;
+    border-radius:12px;
+    box-shadow:0 15px 30px rgba(0,0,0,.35);
+    z-index:9999;
+    display:none;
+    align-items:center;
+    gap:10px;
+    font-family:system-ui;
+    max-width:90%;
+  ">
+    <span style="font-size:14px;">Install Creator Studio for faster access?</span>
+    <button id="installBtn" style="
+      background:#22c55e;
+      border:none;
+      color:#022c22;
+      padding:7px 12px;
+      border-radius:8px;
+      font-size:13px;
+      cursor:pointer;
+    ">Install</button>
+    <button id="dismissBtn" style="
+      background:#374151;
+      border:none;
+      color:white;
+      padding:7px 12px;
+      border-radius:8px;
+      font-size:13px;
+      cursor:pointer;
+    ">Later</button>
+  </div>
+`;
+document.body.appendChild(installBox);
+
+
+// Capture install event
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+
+  // Don't show again if already installed once
+  if (!localStorage.getItem("pwaInstalled")) {
+    showInstallBox();
+  }
+});
+
+
+// Show banner
+function showInstallBox() {
+  document.querySelector("#installBox div").style.display = "flex";
+}
+
+
+// Install button logic
+document.getElementById("installBtn").addEventListener("click", async () => {
+  if (!deferredPrompt) return;
+
+  deferredPrompt.prompt();
+  const choice = await deferredPrompt.userChoice;
+
+  if (choice.outcome === "accepted") {
+    localStorage.setItem("pwaInstalled","yes");
+    hideInstallBox();
+  }
+
+  deferredPrompt = null;
+});
+
+
+// Dismiss button logic
+document.getElementById("dismissBtn").addEventListener("click", hideInstallBox);
+
+
+// Hide banner function
+function hideInstallBox() {
+  document.querySelector("#installBox div").style.display = "none";
+}
+
+
+// Handle successful install
+window.addEventListener("appinstalled", () => {
+  localStorage.setItem("pwaInstalled","yes");
+  hideInstallBox();
+});
+</script>
+
+
+    
 </body>
 </html>

@@ -1,89 +1,137 @@
-const CACHE_NAME = 'social-app-cache-v1';
-const urlsToCache = [
-  '/', // Assumes view.html is the root index, or change to '/view.html'
-  '/view.html',
-  '/studio.html',
-  'https://cdn.tailwindcss.com'
-  // Note: External Google Drive links and the Apps Script URL should NOT be precached.
+const CACHE_VERSION = "v3";
+const STATIC_CACHE = `static-${CACHE_VERSION}`;
+const DYNAMIC_CACHE = `dynamic-${CACHE_VERSION}`;
+const IMAGE_CACHE = `images-${CACHE_VERSION}`;
+const API_CACHE = `api-${CACHE_VERSION}`;
+
+// Core app files (install required)
+const APP_SHELL = [
+  "/",
+  "/studio.html",
+  "/view.html",
+  "/manifest.json",
+  "/service-worker.js",
+  "/customer-192.png",
+  "/customer-512.png"
 ];
 
-// 1. Install Event: Caching static assets
-self.addEventListener('install', event => {
-  console.log('[Service Worker] Install');
+// ===== INSTALL =====
+self.addEventListener("install", event => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log('[Service Worker] Pre-caching static assets');
-        return cache.addAll(urlsToCache);
-      })
+    caches.open(STATIC_CACHE).then(cache => cache.addAll(APP_SHELL))
   );
+  self.skipWaiting();
 });
 
-// 2. Activate Event: Cleaning up old caches
-self.addEventListener('activate', event => {
-  console.log('[Service Worker] Activate');
-  const cacheWhitelist = [CACHE_NAME];
+// ===== ACTIVATE =====
+self.addEventListener("activate", event => {
   event.waitUntil(
-    caches.keys().then(cacheNames => {
+    caches.keys().then(keys => {
       return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheWhitelist.indexOf(cacheName) === -1) {
-            console.log('[Service Worker] Deleting old cache:', cacheName);
-            return caches.delete(cacheName);
+        keys.map(key => {
+          if (![STATIC_CACHE, DYNAMIC_CACHE, IMAGE_CACHE, API_CACHE].includes(key)) {
+            return caches.delete(key);
           }
         })
       );
     })
   );
-  // Ensure the service worker takes control of the page immediately
-  return self.clients.claim();
+  self.clients.claim();
 });
 
-// 3. Fetch Event: Intercepting network requests
-self.addEventListener('fetch', event => {
-  const requestUrl = new URL(event.request.url);
+// ===== FETCH HANDLER =====
+self.addEventListener("fetch", event => {
+  const request = event.request;
+  const url = new URL(request.url);
 
-  // Strategy 1: Cache-First for static assets (app shell)
-  if (urlsToCache.includes(requestUrl.pathname) || requestUrl.hostname === 'cdn.tailwindcss.com') {
-    event.respondWith(
-      caches.match(event.request).then(response => {
-        // Return cache hit, or fetch from network and cache for next time
-        return response || fetch(event.request);
-      })
-    );
+  // HANDLE NAVIGATION (HTML)
+  if (request.mode === "navigate") {
+    event.respondWith(networkFirst(request));
     return;
   }
-  
-  // Strategy 2: Network-Only for the Google Apps Script API endpoint
-  // This content is dynamic and should always be fresh.
-  if (requestUrl.host === 'script.google.com' && requestUrl.pathname.includes('/macros/s/')) {
-    // If offline, the fetch will throw an error and fall back to the browser's default offline experience.
-    return; 
+
+  // GOOGLE APPS SCRIPT API CACHE
+  if (url.href.includes("script.google.com")) {
+    event.respondWith(networkFirstAPI(request));
+    return;
   }
 
-  // Strategy 3: Default (Network-First or Cache-First for others)
-  // For images and other resources not explicitly handled: try network, fallback to cache
-  event.respondWith(
-    fetch(event.request)
-      .then(response => {
-        // Check if we received a valid response
-        if (!response || response.status !== 200 || response.type !== 'basic') {
-          return response;
-        }
+  // IMAGES CACHE
+  if (request.destination === "image") {
+    event.respondWith(cacheFirstImage(request));
+    return;
+  }
 
-        // IMPORTANT: Clone the response. A response is a stream and can only be consumed once.
-        const responseToCache = response.clone();
+  // CSS, JS, FONTS
+  if (["style", "script", "font"].includes(request.destination)) {
+    event.respondWith(staleWhileRevalidate(request));
+    return;
+  }
 
-        caches.open(CACHE_NAME)
-          .then(cache => {
-            cache.put(event.request, responseToCache);
-          });
-
-        return response;
-      })
-      .catch(() => {
-        // Fallback to the cache if network fails
-        return caches.match(event.request);
-      })
-  );
+  // DEFAULT FALLBACK STRATEGY
+  event.respondWith(networkFirst(request));
 });
+
+
+// ===== STRATEGIES =====
+
+// Network First (HTML pages, API)
+async function networkFirst(request) {
+  try {
+    const fresh = await fetch(request);
+    const cache = await caches.open(DYNAMIC_CACHE);
+    cache.put(request, fresh.clone());
+    return fresh;
+  } catch (e) {
+    return caches.match(request) || caches.match("/studio.html");
+  }
+}
+
+// Network First API
+async function networkFirstAPI(request) {
+  try {
+    const fresh = await fetch(request);
+    const cache = await caches.open(API_CACHE);
+    cache.put(request, fresh.clone());
+    return fresh;
+  } catch (e) {
+    return caches.match(request);
+  }
+}
+
+// Cache First (Images)
+async function cacheFirstImage(request) {
+  const cached = await caches.match(request);
+  if (cached) return cached;
+
+  const fresh = await fetch(request);
+  const cache = await caches.open(IMAGE_CACHE);
+  cache.put(request, fresh.clone());
+  return fresh;
+}
+
+// Stale While Revalidate (CSS/JS)
+async function staleWhileRevalidate(request) {
+  const cached = await caches.match(request);
+  const network = fetch(request).then(response => {
+    return caches.open(DYNAMIC_CACHE).then(cache => {
+      cache.put(request, response.clone());
+      return response;
+    });
+  });
+
+  return cached || network;
+}
+
+
+// ===== OFFLINE MESSAGE =====
+self.addEventListener("fetch", event => {
+  if (!navigator.onLine && event.request.mode === "navigate") {
+    event.respondWith(
+      new Response("<h2 style='text-align:center;padding:30px'>You are offline</h2>", {
+        headers: { "Content-Type": "text/html" }
+      })
+    );
+  }
+});
+

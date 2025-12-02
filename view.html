@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Public Feed | Social App</title>
+    <link rel="manifest" href="/manifest.json">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .post-media-container {
@@ -247,5 +249,16 @@
         setInterval(loadPosts, 60000); 
 
     </script>
+
+    <script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/service-worker.js")
+      .then(reg => console.log("Service Worker registered", reg))
+      .catch(err => console.error("SW failed", err));
+  });
+}
+</script>
+
 </body>
 </html>
