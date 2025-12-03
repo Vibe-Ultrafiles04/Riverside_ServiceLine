@@ -2,7 +2,7 @@
   "name": "Riverside_Line",
   "short_name": "Riverside_Line",
   "description": "Creator Studio and Public Feed for sharing content.",
-  "start_url": "/studio.html",
+  "start_url": "/index.html",
   "display": "standalone",
   "background_color": "#1f2937",
   "theme_color": "#4f46e5",
