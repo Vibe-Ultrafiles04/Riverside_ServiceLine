@@ -466,17 +466,14 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
   document.body.appendChild(installBanner);
 
   // Listen for the browser's installability signal
-  window.addEventListener('beforeinstallprompt', (e) => {
-    // Prevent default mini-infobar (we want our own UI)
-    e.preventDefault();
-    deferredPrompt = e;
+ window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
 
-    // Show our custom banner only after successful registration
-    // (you can move this show logic elsewhere if preferred)
-    if (localStorage.getItem('userName')) {
-      installBanner.style.display = 'flex';
-    }
-  });
+  // ✅ show immediately (before login)
+  installBanner.style.display = 'flex';
+});
+
 
   // User clicks Install
   document.addEventListener('click', async (e) => {
