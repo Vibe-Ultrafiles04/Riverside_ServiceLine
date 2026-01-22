@@ -89,6 +89,19 @@ self.addEventListener('fetch', event => {
   }
 
   // ────────────────────────────────────────────────
+  // NEW: Let HTML pages & navigation requests try the network first
+  //      (prevents serving stale login.html forever)
+  // ────────────────────────────────────────────────
+  if (event.request.mode === 'navigate' || 
+      url.pathname.endsWith('.html') || 
+      url.pathname === '/') {
+    event.respondWith(
+      fetch(event.request).catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
+  // ────────────────────────────────────────────────
   // 2. Everything else → cache-first + stale-while-revalidate pattern
   // ────────────────────────────────────────────────
   event.respondWith(

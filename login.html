@@ -274,6 +274,14 @@
   </style>
 </head>
 <body>
+
+  <script>
+  // Run before DOM is even parsed
+  if (localStorage.getItem('userName')) {
+    window.location.replace('/index.html');  // replace → doesn't add to history
+  }
+</script>
+
 <div id="toast-container"></div>
   <div class="container">
     <h1>Join Chat</h1>
