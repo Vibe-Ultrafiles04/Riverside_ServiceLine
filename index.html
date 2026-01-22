@@ -403,6 +403,8 @@
 }
 
 
+
+
   </style>
 </head>
 <body>
@@ -485,10 +487,60 @@
     </button>
   </div>
 </div>
- <script>
-  const scriptUrl = 'https://script.google.com/macros/s/AKfycbzxjb1YD_a4rRW_WvDH3CkqxwZFLspdLinbLtSDAXFk1J67eBOdGmXRSUQV1d8tq1ag-Q/exec';
 
-  const userName = localStorage.getItem('userName');
+
+<!-- Profile Modal – Modern & Styled (updated: direct avatar replacement) -->
+<div id="profile-modal" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.85); backdrop-filter:blur(12px); z-index:2000; align-items:center; justify-content:center; padding:16px;">
+  <div style="background:rgba(30,41,59,0.95); width:100%; max-width:420px; border-radius:24px; padding:28px; border:1px solid rgba(96,165,250,0.3); box-shadow:0 20px 80px rgba(0,0,0,0.7); animation:fadeIn 0.4s ease;">
+   
+    <h2 style="text-align:center; color:#60a5fa; margin:0 0 28px 0; font-size:1.6rem; font-weight:700; letter-spacing:0.5px;">Your Profile</h2>
+   
+    <!-- Avatar Section with Camera Overlay -->
+    <div style="position:relative; width:160px; height:160px; margin:0 auto 32px; border-radius:50%; overflow:hidden; border:4px solid #60a5fa; box-shadow:0 8px 30px rgba(59,130,246,0.4);">
+      <img id="modal-avatar"
+           src=""
+           style="width:100%; height:100%; object-fit:cover; transition:opacity 0.3s ease;">
+      <label for="modal-avatar-input"
+             style="position:absolute; inset:0; background:linear-gradient(135deg, rgba(59,130,246,0.75), rgba(96,165,250,0.75)); opacity:0; transition:opacity 0.3s; display:flex; align-items:center; justify-content:center; cursor:pointer; color:white; font-size:2.2rem;">
+        <i class="fas fa-camera"></i>
+      </label>
+      <input type="file" id="modal-avatar-input" accept="image/*" style="display:none;">
+    </div>
+
+    <!-- Hover effect for camera -->
+    <style>
+      #profile-modal div[style*="position:relative; width:160px"]:hover label {
+        opacity: 1;
+      }
+    </style>
+
+    <!-- Name Input -->
+    <div style="margin-bottom:32px;">
+      <label style="display:block; color:#94a3b8; margin-bottom:10px; font-size:1rem; font-weight:500;">Display Name</label>
+      <input type="text" id="modal-name-input"
+             style="width:100%; padding:14px 18px; border-radius:14px; background:rgba(255,255,255,0.08); border:1px solid #60a5fa; color:white; font-size:1.1rem; outline:none; transition:all 0.3s;">
+      <div id="modal-error" style="color:#f87171; font-size:0.9rem; margin-top:10px; min-height:22px;"></div>
+    </div>
+
+    <!-- Buttons -->
+    <div style="display:flex; gap:16px;">
+      <button id="modal-cancel-btn"
+              style="flex:1; padding:14px; border-radius:14px; background:#334155; color:#e2e8f0; border:none; font-weight:600; cursor:pointer; font-size:1rem; transition:all 0.3s;">
+        Cancel
+      </button>
+      <button id="modal-save-btn"
+              style="flex:1; padding:14px; border-radius:14px; background:linear-gradient(135deg,#3b82f6,#60a5fa); color:white; border:none; font-weight:600; cursor:pointer; font-size:1rem; transition:all 0.3s;">
+        Save Changes
+      </button>
+    </div>
+  </div>
+</div>
+
+ <script>
+  const scriptUrl = 'https://script.google.com/macros/s/AKfycbwwzF1yZ81PgEA8eZJzxpNA2y5CtzUfQhKTQkyUAMn2r6scYeQ5vPS-dwaYCPovDl7O/exec';
+
+ let userName = localStorage.getItem('userName');
+
   if (!userName) {
     window.location.href = 'login.html';
   }
@@ -558,6 +610,134 @@ if (storedPicLink) {
     previewBar.style.display = 'none';
   });
 
+  // ─── Modern Profile Modal – Direct Avatar Update in Circle ────────────────
+
+const profileModal     = document.getElementById('profile-modal');
+const modalAvatar      = document.getElementById('modal-avatar');
+const modalNameInput   = document.getElementById('modal-name-input');
+const modalError       = document.getElementById('modal-error');
+const modalSaveBtn     = document.getElementById('modal-save-btn');
+const modalCancelBtn   = document.getElementById('modal-cancel-btn');
+const modalAvatarInput = document.getElementById('modal-avatar-input');
+
+let selectedAvatarFile = null;
+
+function openProfileModal() {
+  modalNameInput.value = userName || '';
+  modalAvatar.src = userAvatarImg.src;
+  modalAvatar.style.opacity = '1';
+  modalError.textContent = '';
+  selectedAvatarFile = null;
+  profileModal.style.display = 'flex';
+  modalAvatarInput.value = '';
+}
+
+function closeProfileModal() {
+  profileModal.style.display = 'none';
+  modalError.textContent = '';
+  selectedAvatarFile = null;
+  modalAvatarInput.value = '';
+  modalAvatar.style.opacity = '1';
+}
+
+userAvatarImg.addEventListener('click', openProfileModal);
+modalCancelBtn.addEventListener('click', closeProfileModal);
+
+profileModal.addEventListener('click', e => {
+  if (e.target === profileModal) closeProfileModal();
+});
+
+// ─── When user selects new image → immediately show it in the circle ─────
+modalAvatarInput.addEventListener('change', e => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  if (!file.type.startsWith('image/')) {
+    modalError.textContent = "Please select an image file";
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = ev => {
+    selectedAvatarFile = {
+      base64: ev.target.result.split(',')[1],
+      type:   file.type,
+      name:   file.name
+    };
+
+    // Directly update the circular avatar preview
+    modalAvatar.src = ev.target.result;
+    modalAvatar.style.opacity = '1';
+    modalError.textContent = '';
+  };
+  reader.readAsDataURL(file);
+});
+
+// ─── Save name and/or avatar ─────────────────────────────────────────────
+modalSaveBtn.addEventListener('click', async () => {
+  const newName = (modalNameInput.value || '').trim();
+  const nameChanged = newName && newName !== userName;
+  const avatarChanged = !!selectedAvatarFile;
+
+  if (!nameChanged && !avatarChanged) {
+    closeProfileModal();
+    return;
+  }
+
+  if (nameChanged && newName.length < 2) {
+    modalError.textContent = "Name must be at least 2 characters";
+    return;
+  }
+
+  modalSaveBtn.disabled = true;
+  modalError.textContent = "Saving...";
+
+  try {
+    const payload = { operation: 'updateProfile', oldName: userName };
+    if (nameChanged) payload.newName = newName;
+    if (avatarChanged) {
+      payload.imageData = selectedAvatarFile.base64;
+      payload.imageName = selectedAvatarFile.name;
+    }
+
+    const res = await fetch(scriptUrl, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+
+    const result = await res.json();
+
+    if (result.status === 'success') {
+      if (nameChanged) {
+        localStorage.setItem('userName', result.newName || newName);
+        userName = result.newName || newName;
+      }
+
+      if (avatarChanged && result.picLink) {
+        localStorage.setItem('userPicLink', result.picLink);
+
+        const src = result.picLink.includes('http')
+          ? result.picLink
+          : `https://lh3.googleusercontent.com/d/${extractFileId(result.picLink)}`;
+
+        // Update both the top-right navbar avatar and modal avatar
+        userAvatarImg.src = src;
+        modalAvatar.src = src;
+      }
+
+      showToast("Profile updated successfully");
+      closeProfileModal();
+      loadComments(false); // Refresh avatars & names in chat
+    } else {
+      modalError.textContent = result.message || "Update failed";
+    }
+  } catch (err) {
+    modalError.textContent = "Connection error – try again";
+    console.error(err);
+  } finally {
+    modalSaveBtn.disabled = false;
+  }
+});
   function scrollToBottom(force = false) {
     const isNearBottom = Math.abs(commentsDiv.scrollHeight - commentsDiv.clientHeight - commentsDiv.scrollTop) < 150;
     if (force || isNearBottom) {
@@ -882,44 +1062,6 @@ function updateAnnBadge(total) {
   commentInput.focus();
 </script>
 
-<!-- OneSignal Push -->
-<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-<script>
-  window.OneSignalDeferred = window.OneSignalDeferred || [];
-
-  OneSignalDeferred.push(async function(OneSignal) {
-    // Initialize with your App ID
-    await OneSignal.init({
-      appId: "d52a0398-35ce-4bab-b70d-fcc8cafb3b24",
-      
-      // Optional but recommended settings for better UX & compatibility
-      notifyButton: {
-        enable: false,                    // We don't need the floating bell icon
-      },
-      allowLocalhostAsSecureOrigin: true, // Useful during local testing
-      autoResubscribe: true,              // Re-subscribe if permission was previously granted
-    });
-
-    // ──────────────────────────────────────────────────────────────
-    // Prompt logic: Ask only if not already subscribed (after 10 seconds)
-    // This is a gentle auto-prompt — adjust delay or remove if using dashboard prompts
-    setTimeout(async () => {
-      try {
-        const isSubscribed = await OneSignal.isPushNotificationsEnabled();
-        const wasEverSubscribed = await OneSignal.getSubscription(); // null if never granted
-
-        if (!isSubscribed && !wasEverSubscribed) {
-          console.log("[OneSignal] Showing slidedown prompt after delay");
-          await OneSignal.showSlidedownPrompt();  // Nice animated slide-down
-        } else {
-          console.log("[OneSignal] User already subscribed or previously denied → skipping prompt");
-        }
-      } catch (err) {
-        console.error("[OneSignal] Prompt check failed:", err);
-      }
-    }, 10000); // 10 seconds — feels natural after user starts reading/using chat
-  });
-</script>
 <script>
   // Register service worker
   if ('serviceWorker' in navigator) {
@@ -934,6 +1076,7 @@ function updateAnnBadge(total) {
     });
   }
 </script>
+
 
 
 </body>

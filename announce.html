@@ -461,8 +461,9 @@
     <input type="file" id="file-input" accept="image/*,video/*" multiple style="display:none;">
 
     <script>
-        const scriptUrl = 'https://script.google.com/macros/s/AKfycbzxjb1YD_a4rRW_WvDH3CkqxwZFLspdLinbLtSDAXFk1J67eBOdGmXRSUQV1d8tq1ag-Q/exec';
-        const userName = localStorage.getItem('userName');
+        const scriptUrl = 'https://script.google.com/macros/s/AKfycbwwzF1yZ81PgEA8eZJzxpNA2y5CtzUfQhKTQkyUAMn2r6scYeQ5vPS-dwaYCPovDl7O/exec';
+      let userName = localStorage.getItem('userName');
+
         if (!userName) {
             window.location.href = 'login.html';
         }
@@ -837,57 +838,6 @@ markAnnSeen();
         if (!document.hidden) startPolling();
     </script>
 
-    <!-- OneSignal Push -->
-<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-<script>
-  window.OneSignalDeferred = window.OneSignalDeferred || [];
-
-  OneSignalDeferred.push(async function(OneSignal) {
-    // Initialize with your App ID
-    await OneSignal.init({
-      appId: "d52a0398-35ce-4bab-b70d-fcc8cafb3b24",
-      
-      // Optional but recommended settings for better UX & compatibility
-      notifyButton: {
-        enable: false,                    // We don't need the floating bell icon
-      },
-      allowLocalhostAsSecureOrigin: true, // Useful during local testing
-      autoResubscribe: true,              // Re-subscribe if permission was previously granted
-    });
-
-    // ──────────────────────────────────────────────────────────────
-    // Prompt logic: Ask only if not already subscribed (after 10 seconds)
-    // This is a gentle auto-prompt — adjust delay or remove if using dashboard prompts
-    setTimeout(async () => {
-      try {
-        const isSubscribed = await OneSignal.isPushNotificationsEnabled();
-        const wasEverSubscribed = await OneSignal.getSubscription(); // null if never granted
-
-        if (!isSubscribed && !wasEverSubscribed) {
-          console.log("[OneSignal] Showing slidedown prompt after delay");
-          await OneSignal.showSlidedownPrompt();  // Nice animated slide-down
-        } else {
-          console.log("[OneSignal] User already subscribed or previously denied → skipping prompt");
-        }
-      } catch (err) {
-        console.error("[OneSignal] Prompt check failed:", err);
-      }
-    }, 10000); // 10 seconds — feels natural after user starts reading/using chat
-  });
-</script>
-    <script>
-  // Register service worker
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js')
-        .then(reg => {
-          console.log('Service Worker registered → scope:', reg.scope);
-        })
-        .catch(err => {
-          console.error('Service Worker registration failed:', err);
-        });
-    });
-  }
-</script>
+   
 </body>
 </html>
