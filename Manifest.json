@@ -2,7 +2,7 @@
   "name": "Deliverance Church Int'l Riverside",
   "short_name": "DC Riverside",
   "description": "Join the Deliverance Church Riverside community – chat, announcements & more",
-  "start_url": "/login.html",
+  "start_url": "/index.html",
  "display": "standalone",
   "display_override": ["standalone", "minimal-ui"],
   "background_color": "#ffffff",
