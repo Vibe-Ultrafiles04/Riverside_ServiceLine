@@ -6,7 +6,19 @@
   <title>Chat Room</title>
 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+ <link rel="manifest" href="/manifest.json">
 
+ <!-- iOS Safari home screen support -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="DC Riverside">
+
+<!-- Reuse your existing 192×192 icon for Apple devices -->
+<link rel="apple-touch-icon" sizes="180x180" href="customer-192.png">
+<link rel="apple-touch-icon" sizes="152x152" href="customer-192.png">
+<link rel="apple-touch-icon" sizes="167x167" href="customer-192.png">
+<!-- Fallback (also uses the same file) -->
+<link rel="apple-touch-icon" href="customer-192.png">
   <style>
     * {
       margin: 0;
@@ -868,6 +880,21 @@ function updateAnnBadge(total) {
 
   if (!document.hidden) startPolling();
   commentInput.focus();
+</script>
+
+<script>
+  // Register service worker
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then(reg => {
+          console.log('Service Worker registered → scope:', reg.scope);
+        })
+        .catch(err => {
+          console.error('Service Worker registration failed:', err);
+        });
+    });
+  }
 </script>
 </body>
 </html>

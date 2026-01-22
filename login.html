@@ -6,7 +6,18 @@
   <title>Join Chat • Profile Setup</title>
   
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-  
+  <link rel="manifest" href="/manifest.json">
+  <!-- iOS Safari home screen support -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="DC Riverside">
+
+<!-- Reuse your existing 192×192 icon for Apple devices -->
+<link rel="apple-touch-icon" sizes="180x180" href="customer-192.png">
+<link rel="apple-touch-icon" sizes="152x152" href="customer-192.png">
+<link rel="apple-touch-icon" sizes="167x167" href="customer-192.png">
+<!-- Fallback (also uses the same file) -->
+<link rel="apple-touch-icon" href="customer-192.png">
   <style>
     * {
       margin: 0;
@@ -397,7 +408,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
       localStorage.setItem('userPicLink', result.picLink);
     }
     
-    window.location.href = 'channel.html';
+    window.location.href = 'index.html';
   }, 800); // 0.8 seconds
 } else {
         showToast(result.message || 'Something went wrong');
@@ -418,5 +429,106 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
 });
 
   </script>
+  <script>
+  // ────────────────────────────────────────────────
+  // PWA Install Prompt Logic
+  // ────────────────────────────────────────────────
+  let deferredPrompt = null;
+  const installBanner = document.createElement('div');
+  installBanner.id = 'install-banner';
+  installBanner.style.cssText = `
+    position: fixed; bottom: 16px; left: 16px; right: 16px; 
+    background: rgba(30,41,59,0.95); color: white; 
+    padding: 16px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    z-index: 10000; display: none; flex-direction: column; gap: 12px;
+    backdrop-filter: blur(10px); border: 1px solid rgba(96,165,250,0.3);
+    font-family: inherit;
+  `;
+  installBanner.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <strong style="color:#60a5fa">Add to Home Screen</strong><br>
+        <small>Get faster access & offline support</small>
+      </div>
+      <div style="display:flex; gap:12px;">
+        <button id="install-btn" style="
+          background: linear-gradient(90deg, #3b82f6, #60a5fa);
+          color: white; border: none; padding: 10px 20px;
+          border-radius: 12px; font-weight: 600; cursor: pointer;
+        ">Install</button>
+        <button id="dismiss-install" style="
+          background: transparent; color: #94a3b8; border: none;
+          font-size: 1.1rem; cursor: pointer;
+        ">×</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(installBanner);
+
+  // Listen for the browser's installability signal
+  window.addEventListener('beforeinstallprompt', (e) => {
+    // Prevent default mini-infobar (we want our own UI)
+    e.preventDefault();
+    deferredPrompt = e;
+
+    // Show our custom banner only after successful registration
+    // (you can move this show logic elsewhere if preferred)
+    if (localStorage.getItem('userName')) {
+      installBanner.style.display = 'flex';
+    }
+  });
+
+  // User clicks Install
+  document.addEventListener('click', async (e) => {
+    if (e.target.id === 'install-btn' && deferredPrompt) {
+      // Show the native prompt
+      deferredPrompt.prompt();
+
+      // Wait for user choice
+      const { outcome } = await deferredPrompt.userChoice;
+      
+      if (outcome === 'accepted') {
+        console.log('PWA installed');
+        installBanner.style.display = 'none';
+      } else {
+        console.log('User dismissed install');
+      }
+
+      // Clean up
+      deferredPrompt = null;
+    }
+  });
+
+  // Dismiss button
+  document.getElementById('dismiss-install')?.addEventListener('click', () => {
+    installBanner.style.display = 'none';
+    // Optional: remember dismissal for X days using localStorage
+    localStorage.setItem('install-dismissed', Date.now());
+  });
+
+  // Optional: re-show banner on next visits if not installed & not recently dismissed
+  if (!localStorage.getItem('userName') && 
+      !localStorage.getItem('install-dismissed')) {
+    // You could show a softer hint here if you want
+  }
+
+  // ────────────────────────────────────────────────
+  // Service Worker registration (unchanged)
+  // ────────────────────────────────────────────────
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then(reg => console.log('Service Worker registered → scope:', reg.scope))
+        .catch(err => console.error('Service Worker registration failed:', err));
+    });
+  }
+
+  // Optional: listen for successful install (mostly Chrome)
+  window.addEventListener('appinstalled', () => {
+    console.log('PWA was installed');
+    installBanner.style.display = 'none';
+    // You can show a toast: "App installed! 🎉"
+  });
+</script>
 </body>
 </html>
