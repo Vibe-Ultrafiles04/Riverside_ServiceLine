@@ -1,339 +1,873 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Creator Studio | Social App</title>
-    <link rel="manifest" href="/manifest.json">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chat Room</title>
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .media-preview {
-            max-width: 100%;
-            height: 400px;
-            background-color: #f3f4f6;
-            border-radius: 0.5rem;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-        }
-        .media-preview img, .media-preview iframe {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-        }
-    </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      height: 100vh; /* Set a fixed height */
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      color: #e2e8f0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden; /* Prevent the whole page from scrolling */
+    }
+
+    header {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(10px);
+      padding: 14px 20px;
+      border-bottom: 1px solid rgba(96, 165, 250, 0.15);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .header-content {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      color: #60a5fa;
+      font-weight: 600;
+    }
+
+   .chat-container {
+      flex: 1; /* Takes up all available space between header and input */
+      max-width: 900px;
+      margin: 0 auto;
+      width: 100%;
+      padding: 20px;
+      overflow-y: auto; /* Scroll happens here */
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      /* Remove the large padding-bottom since input is no longer floating */
+    }
+
+    .message {
+      display: flex;
+      align-items: flex-start;
+      max-width: 80%;
+      gap: 12px;
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    .message.own {
+      margin-left: auto;
+      flex-direction: row-reverse;
+    }
+
+    .avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #60a5fa;
+      flex-shrink: 0;
+      box-shadow: 0 2px 10px rgba(37, 99, 235, 0.25);
+    }
+
+    .message-content {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(6px);
+      padding: 12px 16px;
+      border-radius: 18px;
+      border-top-left-radius: 4px;
+      max-width: calc(100% - 54px);
+      position: relative;
+    }
+
+    .message.own .message-content {
+      background: linear-gradient(135deg, #3b82f6, #60a5fa);
+      color: white;
+      border-top-left-radius: 18px;
+      border-top-right-radius: 4px;
+    }
+
+    .name {
+      font-weight: 600;
+      color: #60a5fa;
+      margin-bottom: 4px;
+      font-size: 0.9rem;
+    }
+
+    .message.own .name {
+      color: white;
+      opacity: 0.9;
+    }
+
+    .text {
+      word-break: break-word;
+      line-height: 1.4;
+    }
+
+    .time {
+      font-size: 0.72rem;
+      color: #94a3b8;
+      margin-top: 6px;
+      opacity: 0.8;
+      display: block;
+    }
+
+    .message.own .time {
+      color: rgba(255,255,255,0.7);
+    }
+
+   .input-area {
+      background: rgba(15, 23, 42, 1); /* Solid material */
+      padding: 16px 20px;
+      border-top: 1px solid rgba(96, 165, 250, 0.3);
+      flex-shrink: 0; /* Prevents the input from squishing */
+    }
+    .input-wrapper {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    #comment {
+      flex: 1;
+      padding: 14px 18px;
+      border: none;
+      border-radius: 24px;
+      background: rgba(255,255,255,0.08);
+      color: white;
+      font-size: 1rem;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    #comment:focus {
+      background: rgba(255,255,255,0.14);
+      box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.3);
+    }
+
+    #comment::placeholder {
+      color: #94a3b8;
+    }
+
+    button {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #3b82f6, #60a5fa);
+      color: white;
+      border: none;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(59, 130, 246, 0.5);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Scrollbar styling */
+    .chat-container::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .chat-container::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .chat-container::-webkit-scrollbar-thumb {
+      background: rgba(96, 165, 250, 0.4);
+      border-radius: 3px;
+    }
+/* Media Rendering in Chat */
+  .media-content {
+    margin-top: 10px;
+    border-radius: 8px;
+    overflow: hidden;
+    max-width: 100%;
+    display: block;
+  }
+  .media-content img, .media-content video {
+    max-width: 100%;
+    max-height: 300px;
+    display: block;
+    border-radius: 8px;
+  }
+
+  /* Preview bar above input */
+  #preview-bar {
+    display: none;
+    padding: 10px 20px;
+    background: rgba(30, 41, 59, 0.9);
+    border-top: 1px solid #60a5fa;
+    align-items: center;
+    gap: 15px;
+  }
+  #preview-bar img, #preview-bar video {
+    height: 50px;
+    border-radius: 4px;
+  }
+  .msg-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 5px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.message.own:hover .msg-actions {
+  opacity: 1;
+}
+.action-btn {
+  font-size: 0.75rem;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.6);
+  cursor: pointer;
+  width: auto; height: auto; /* Reset global button styles */
+  padding: 2px 5px;
+}
+.action-btn:hover {
+  color: white;
+  transform: none; box-shadow: none; /* Reset global hover */
+}
+.delete-btn:hover { color: #f87171; }
+
+/* Toast Notifications Container */
+#toast-container {
+  position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+  z-index: 1000; display: flex; flex-direction: column; gap: 10px;
+}
+.toast {
+  background: #1e293b; color: white; padding: 12px 24px; border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5); border-left: 4px solid #3b82f6;
+  animation: slideDown 0.3s ease forwards; min-width: 250px;
+  display: flex; align-items: center; gap: 10px;
+}
+.toast.error { border-left-color: #ef4444; }
+@keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Inline Edit Field */
+.edit-input {
+  width: 100%; background: rgba(255,255,255,0.1); border: 1px solid #60a5fa;
+  color: white; border-radius: 8px; padding: 8px; font-family: inherit;
+  outline: none; margin-bottom: 5px; resize: none;
+}
+.edit-controls { display: flex; gap: 5px; }
+.message-content .text {
+  margin-top: 10px;
+  line-height: 1.55;
+}
+/* Make video messages wider than text-only messages */
+.message:has(.video-container) {
+  max-width: 92%;               /* ← wider than normal 80% */
+}
+
+.message:has(.video-container) .message-content {
+  max-width: 100%;              /* let it take full available width */
+  min-width: 260px;             /* minimum comfortable size for vertical videos */
+  width: 100%;
+}
+
+/* Center the video nicely when it's pushed */
+.video-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #000;
+  border-radius: 12px;
+  overflow: hidden;
+  margin: 8px 0;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+
+/* Remove forced positioning - let iframe be normal block */
+.video-container iframe {
+  width: 100%;
+  height: auto;
+  min-height: 200px;
+  max-height: 65vh;
+  aspect-ratio: 16/9;           /* fallback for horizontal */
+  display: block;
+  border: none;
+}
+
+/* Reply Preview Bar above input */
+#reply-preview {
+  display: none;
+  background: rgba(30, 41, 59, 0.95);
+  padding: 10px 20px;
+  border-left: 4px solid #60a5fa;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.reply-info {
+  font-size: 0.85rem;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.reply-info b { color: #60a5fa; }
+
+/* Quoted message inside a comment */
+.quoted-msg {
+  background: rgba(0, 0, 0, 0.2);
+  border-left: 3px solid #60a5fa;
+  padding: 6px 10px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+.message.own .quoted-msg {
+  background: rgba(255, 255, 255, 0.15);
+  border-left-color: white;
+  color: #e2e8f0;
+}
+
+/* Update this part to make buttons show for all messages on hover */
+.message:hover .msg-actions {
+  opacity: 1;
+}
+
+/* Optional: Make the reply button a slightly different color to stand out */
+.reply-btn:hover {
+  color: #60a5fa;
+}
+
+/* Audio container - similar to video for embedding Drive preview */
+.audio-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #000;
+  border-radius: 12px;
+  overflow: hidden;
+  margin: 8px 0;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+
+.audio-container iframe {
+  width: 100%;
+  height: 80px; /* Shorter height for audio players */
+  border: none;
+}
+
+/* Make audio messages take appropriate width */
+.message:has(.audio-container) {
+  max-width: 85%; /* Moderate width, between text and video */
+}
+
+.message:has(.audio-container) .message-content {
+  max-width: 100%;
+  min-width: 220px;
+  width: 100%;
+}
+
+
+  </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
-    <div class="max-w-3xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
-        <header class="mb-8">
-            <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight">
-                Church App Studio 🚀
-            </h1>
-            <p class="mt-2 text-lg text-gray-500">
-                Post new content to the public feed.
-            </p>
-            <a href="view.html" class="text-indigo-600 hover:text-indigo-800 font-medium text-sm mt-1 inline-block">
-                View shared Feed &rarr;
-            </a>
-        </header>
-        
+<body>
+<div id="toast-container"></div>
+<header>
+  <div class="header-content">
+    <h1>Chat Room</h1>
+    
+    <div style="display: flex; align-items: center; gap: 20px;">
+      <!-- Live users count -->
+      <div style="font-size:0.9rem; color:#94a3b8;">
+        <i class="fas fa-users"></i> Live
+      </div>
+      
+      <!-- Notification Bell -->
+      <div style="position: relative;">
+        <a href="announce.html" style="color: #60a5fa; font-size: 1.5rem; text-decoration: none;">
+          <i class="fas fa-bell"></i>
+          <span id="ann-badge" style="
+            position: absolute;
+            top: -6px;
+            right: -10px;
+            background: #ef4444;
+            color: white;
+            font-size: 0.68rem;
+            font-weight: bold;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 4px;
+            box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.8);
+            display: none;
+          ">0</span>
+        </a>
+      </div>
 
-        <div class="bg-white shadow-xl rounded-lg p-6 mb-8">
-            <h2 class="text-xl font-semibold text-gray-800 mb-3">Post Title / Company Name</h2>
-            <input type="text" id="companyName" placeholder="Enter Company Name or Post Title" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-lg" required>
-        </div>
-
-        <div class="bg-white shadow-xl rounded-lg p-6 mb-8">
-            <h2 class="text-xl font-semibold text-gray-800 mb-4">Media Sharing</h2>
-            
-            <label for="driveLink" class="block text-sm font-medium text-gray-700">Google Drive Public Share Link</label>
-            <input type="url" id="driveLink" placeholder="Paste image or video public share link here..." class="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500" required>
-            
-            <div id="loadingIndicator" class="hidden mt-4 text-center text-indigo-600">
-                <svg class="animate-spin h-5 w-5 mr-3 inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Processing link...
-            </div>
-
-            <div id="mediaPreview" class="media-preview mt-6 hidden">
-                </div>
-            
-            <p id="statusMessage" class="mt-4 text-sm text-gray-500 hidden"></p>
-
-            <button id="publishBtn" class="mt-6 w-full py-3 px-4 border border-transparent rounded-lg shadow-md text-lg font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150 ease-in-out disabled:opacity-50" disabled>
-                Publish Post
-            </button>
-        </div>
+      <!-- Your Own Profile Picture (circular, in navbar) -->
+      <div style="position: relative;">
+        <img 
+          id="user-avatar" 
+          src="" 
+          class="avatar" 
+          alt="You" 
+          style="width: 38px; height: 38px; cursor: pointer; border: 2px solid #60a5fa;"
+          onerror="this.src='https://via.placeholder.com/38?text=@';"
+        >
+      </div>
     </div>
+  </div>
+</header>
+  <div class="chat-container" id="comments"></div>
 
-    <script>
-        // REPLACE THIS WITH YOUR DEPLOYED GOOGLE APPS SCRIPT WEB APP URL
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbydHdo4ebsCuYIilHOlU3hZAlUfAlxRhGW2lUtTfBkkz3li24xhCZfWaVITqTqzs-Xs0Q/exec"; 
+ <div id="preview-bar">
+  <div id="file-preview-container"></div>
+  <button id="removeFile" style="width:30px; height:30px; background:#ef4444; font-size:0.8rem;">
+    <i class="fas fa-times"></i>
+  </button>
+</div>
 
-        const driveLinkInput = document.getElementById('driveLink');
-        const companyNameInput = document.getElementById('companyName');
-        const mediaPreview = document.getElementById('mediaPreview');
-        const publishBtn = document.getElementById('publishBtn');
-        const statusMessage = document.getElementById('statusMessage');
-        const loadingIndicator = document.getElementById('loadingIndicator');
+<div id="reply-preview">
+  <div class="reply-info" id="reply-text">Replying to...</div>
+  <button onclick="cancelReply()" style="width:24px; height:24px; background:none; color:#ef4444;"><i class="fas fa-times"></i></button>
+</div>
 
-        let postData = {
-            mediaId: null,
-            previewUrl: null,
-            type: null
-        };
-        
-        // --- Helper Functions ---
+<div class="input-area">
+  <div class="input-wrapper">
+    <input type="file" id="fileInput" accept="image/*,video/*,audio/*" style="display:none;">
+    
+    <button type="button" id="addFileBtn" style="background:none; box-shadow:none; color:#60a5fa; width:40px;">
+      <i class="fas fa-plus-circle"></i>
+    </button>
 
-        /**
-         * Extracts the File ID from a Google Drive share link and determines the media type.
-         * @param {string} url The Google Drive share URL.
-         * @returns {Object|null} {mediaId, previewUrl, type} or null if invalid.
-         */
-        function processDriveLink(url) {
-            // Regex to find the file ID in different formats: /d/FILE_ID/view, id=FILE_ID, /file/d/FILE_ID/
-            const idMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
-            if (!idMatch) return null;
+    <input type="text" id="comment" placeholder="Type your message..." autocomplete="off">
+    
+    <button type="submit" id="sendBtn">
+      <i class="fas fa-paper-plane"></i>
+    </button>
+  </div>
+</div>
+ <script>
+  const scriptUrl = 'https://script.google.com/macros/s/AKfycbzxjb1YD_a4rRW_WvDH3CkqxwZFLspdLinbLtSDAXFk1J67eBOdGmXRSUQV1d8tq1ag-Q/exec';
 
-            const mediaId = idMatch[1];
-            
-            // Simple heuristic to determine type (could be improved with API/file extension check)
-            // For this simple app, we'll assume a file is an image if it's not explicitly a /file/d/ link (video/other media)
-            
-            let type = 'image';
-            let previewUrl = `https://drive.google.com/uc?export=view&id=${mediaId}`; // Standard direct image view URL
+  const userName = localStorage.getItem('userName');
+  if (!userName) {
+    window.location.href = 'login.html';
+  }
+  // Load your own profile picture into the navbar
+const userAvatarImg = document.getElementById('user-avatar');
+const storedPicLink = localStorage.getItem('userPicLink');
 
-            // The 'preview' URL structure is often preferred for embedding videos/documents
-            if (url.includes('/file/d/')) {
-                type = 'video';
-                previewUrl = `https://drive.google.com/file/d/${mediaId}/preview`;
-            }
-            
-            return { mediaId, previewUrl, type };
-        }
+if (storedPicLink) {
+  const id = extractFileId(storedPicLink);
+  userAvatarImg.src = id ? `https://lh3.googleusercontent.com/d/${id}` : storedPicLink;
+} else {
+  // Fallback if no pic saved yet
+  userAvatarImg.src = 'https://via.placeholder.com/38?text=@';
+}
 
-        /**
-         * Renders the media preview.
-         * @param {string} url The direct preview URL.
-         * @param {string} type The media type ('image' or 'video').
-         */
-        function renderPreview(url, type) {
-            mediaPreview.innerHTML = '';
-            mediaPreview.classList.remove('hidden');
+  const commentsDiv = document.getElementById('comments');
+  const commentInput = document.getElementById('comment');
+  const sendBtn = document.getElementById('sendBtn');
+  
+  // New elements for file handling
+  const fileInput = document.getElementById('fileInput');
+  const addFileBtn = document.getElementById('addFileBtn');
+  const previewBar = document.getElementById('preview-bar');
+  const previewContainer = document.getElementById('file-preview-container');
+  const removeFileBtn = document.getElementById('removeFile');
 
-            if (type === 'image') {
-                const img = document.createElement('img');
-                img.src = url;
-                img.alt = "Image Preview";
-                mediaPreview.appendChild(img);
-                statusMessage.textContent = "Image ready for publish.";
-            } else if (type === 'video') {
-                const iframe = document.createElement('iframe');
-                iframe.src = url;
-                iframe.width = "100%";
-                iframe.height = "100%";
-                iframe.frameBorder = "0";
-                iframe.allow = "autoplay";
-                iframe.allowFullscreen = true;
-                mediaPreview.appendChild(iframe);
-                statusMessage.textContent = "Video ready for publish (may require public sharing).";
-            }
-            statusMessage.classList.remove('hidden');
-        }
+  let lastCommentCount = 0;
+  let pollingInterval = null;
+  let selectedFileData = null;
+  let lastSeenAnnCount = parseInt(localStorage.getItem('lastSeenAnnCount') || '0');
+  let replyingTo = null; // Stores { name: string, text: string }
 
-        // --- Event Listeners ---
+  // Trigger file picker
+  if(addFileBtn) addFileBtn.addEventListener('click', () => fileInput.click());
 
-        driveLinkInput.addEventListener('input', () => {
-            const link = driveLinkInput.value.trim();
-            mediaPreview.classList.add('hidden');
-            statusMessage.classList.add('hidden');
-            publishBtn.disabled = true;
+  // Handle file selection and local preview
+ fileInput.addEventListener('change', function() {
+  const file = this.files[0];
+  if (!file) return;
 
-            if (!link) {
-                postData = { mediaId: null, previewUrl: null, type: null };
-                return;
-            }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    selectedFileData = {
+      base64: e.target.result.split(',')[1],
+      type: file.type,
+      name: file.name
+    };
 
-            loadingIndicator.classList.remove('hidden');
+    let previewHtml = '';
+    if (file.type.startsWith('video')) {
+      previewHtml = `<video src="${e.target.result}" style="height:50px; border-radius:4px;" muted></video>`;
+    } else if (file.type.startsWith('audio')) {
+      previewHtml = `<audio src="${e.target.result}" style="height:50px; width:150px;" controls></audio>`;
+    } else {
+      previewHtml = `<img src="${e.target.result}" style="height:50px; border-radius:4px;">`;
+    }
 
-            // Debounce the input to avoid excessive processing
-            clearTimeout(window.linkDebounce);
-            window.linkDebounce = setTimeout(() => {
-                loadingIndicator.classList.add('hidden');
-                
-                const result = processDriveLink(link);
-
-                if (result) {
-                    postData = result;
-                    renderPreview(result.previewUrl, result.type);
-                    publishBtn.disabled = false;
-                } else {
-                    statusMessage.textContent = "Invalid Google Drive share link format.";
-                    statusMessage.classList.remove('hidden');
-                }
-            }, 500); 
-        });
-
-        publishBtn.addEventListener('click', async () => {
-            const companyName = companyNameInput.value.trim();
-            if (!companyName || !postData.previewUrl) {
-                alert("Please enter a Company Name and a valid media link.");
-                return;
-            }
-
-            publishBtn.disabled = true;
-            publishBtn.textContent = "Publishing...";
-
-            const finalPost = {
-                companyName: companyName,
-                type: postData.type,
-                mediaId: postData.mediaId,
-                previewUrl: postData.previewUrl,
-                timestamp: new Date().toISOString()
-            };
-
-            try {
-               const response = await fetch(SCRIPT_URL, {
-  method: 'POST',
-  body: JSON.stringify(finalPost)
+    previewContainer.innerHTML = previewHtml;
+    previewBar.style.display = 'flex';
+  };
+  reader.readAsDataURL(file);
 });
 
-const result = await response.json();
-
-
-                if (result.status === 'success') {
-                    alert(`Post published successfully! PostID: ${result.postId}`);
-                    // Clear inputs on success
-                    driveLinkInput.value = '';
-                    mediaPreview.classList.add('hidden');
-                    statusMessage.classList.add('hidden');
-                    postData = { mediaId: null, previewUrl: null, type: null };
-                } else {
-                    alert(`Publish failed: ${result.message}`);
-                }
-            } catch (error) {
-                console.error('Fetch error:', error);
-                alert('A network error occurred. Check the Apps Script URL and deployment.');
-            } finally {
-                publishBtn.disabled = false;
-                publishBtn.textContent = "Publish Post";
-            }
-        });
-
-    </script>
-    <script>
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/service-worker.js")
-      .then(reg => console.log("Service Worker registered", reg))
-      .catch(err => console.error("SW failed", err));
+  removeFileBtn.addEventListener('click', () => {
+    selectedFileData = null;
+    fileInput.value = '';
+    previewBar.style.display = 'none';
   });
-}
-</script>
-<script>
-let deferredPrompt;
 
-// Create install banner UI
-const installBox = document.createElement("div");
-installBox.id = "installBox";
-installBox.innerHTML = `
-  <div style="
-    position:fixed;
-    bottom:200px;
-    left:50%;
-    transform:translateX(-50%);
-    background:#111827;
-    color:white;
-    padding:16px 18px;
-    border-radius:12px;
-    box-shadow:0 15px 30px rgba(0,0,0,.35);
-    z-index:9999;
-    display:none;
-    align-items:center;
-    gap:10px;
-    font-family:system-ui;
-    max-width:90%;
-  ">
-    <span style="font-size:14px;">Install Creator Studio for faster access?</span>
-    <button id="installBtn" style="
-      background:#22c55e;
-      border:none;
-      color:#022c22;
-      padding:7px 12px;
-      border-radius:8px;
-      font-size:13px;
-      cursor:pointer;
-    ">Install</button>
-    <button id="dismissBtn" style="
-      background:#374151;
-      border:none;
-      color:white;
-      padding:7px 12px;
-      border-radius:8px;
-      font-size:13px;
-      cursor:pointer;
-    ">Later</button>
+  function scrollToBottom(force = false) {
+    const isNearBottom = Math.abs(commentsDiv.scrollHeight - commentsDiv.clientHeight - commentsDiv.scrollTop) < 150;
+    if (force || isNearBottom) {
+      commentsDiv.scrollTop = commentsDiv.scrollHeight;
+    }
+  }
+
+  function extractFileId(url) {
+    if (!url) return '';
+    const match = url.match(/[-\w]{25,}/);
+    return match ? match[0] : '';
+  }
+
+  // Use lh3 for rendering Drive images/videos
+  function getLh3Link(url) {
+    const id = extractFileId(url);
+    return id ? `https://lh3.googleusercontent.com/d/${id}` : '';
+  }
+
+  async function loadComments(silent = true) {
+    try {
+      const response = await fetch(`${scriptUrl}?operation=getData`);
+      const data = await response.json();
+
+      if (silent && data.comments.length === lastCommentCount) return;
+      
+      lastCommentCount = data.comments.length;
+      const wasAtBottom = Math.abs(commentsDiv.scrollHeight - commentsDiv.clientHeight - commentsDiv.scrollTop) < 150;
+
+      commentsDiv.innerHTML = '';
+
+      data.comments.reverse().forEach(c => {
+        const isOwn = c.name === userName;
+        const mediaLink = getLh3Link(c.fileLink); // Fetch using lh3
+        if (data.announcements) {
+  updateAnnBadge(data.announcements.length);
+}
+        
+        let mediaHtml = '';
+if (mediaLink) {
+  // Video: Use iframe for Drive preview
+  if (c.fileLink.toLowerCase().match(/\.(mp4|mov|webm|m4v)$/i) || 
+      (c.fileType && c.fileType.includes('video'))) {
+    const previewUrl = c.fileLink;  // "https://drive.google.com/file/d/ID/preview"
+    mediaHtml = `
+      <div class="video-container">
+        <iframe 
+          src="${previewUrl}"
+          allowfullscreen
+          allow="autoplay; fullscreen; picture-in-picture"
+          loading="lazy"
+        ></iframe>
+      </div>`;
+  } 
+  // Audio: Use iframe for Drive audio player preview (adjust height)
+  else if (c.fileLink.toLowerCase().match(/\.(mp3|wav|ogg|aac|m4a)$/i) || 
+           (c.fileType && c.fileType.includes('audio'))) {
+    const previewUrl = c.fileLink;  // Same /preview URL works for audio
+    mediaHtml = `
+      <div class="audio-container">
+        <iframe 
+          src="${previewUrl}"
+          allow="autoplay"
+          loading="lazy"
+          style="height:80px;"  // Shorter for audio
+        ></iframe>
+      </div>`;
+  } 
+  // Images: Existing logic
+  else {
+    mediaHtml = `<div class="media-content"><img src="${mediaLink}" style="max-width:100%; border-radius:8px; margin-top:8px;" loading="lazy"></div>`;
+  }
+
+        }
+
+        const msg = document.createElement('div');
+        msg.className = `message ${isOwn ? 'own' : ''}`;
+       // Inside the forEach loop of loadComments:
+// 1. IMPROVED ACTIONS: Show 'Reply' for everyone, but 'Edit/Delete' only for own messages
+const actionsHtml = `
+  <div class="msg-actions">
+    <button class="action-btn reply-btn" onclick="setReply('${c.name}', '${c.comment.replace(/'/g, "\\'")}')">
+      <i class="fas fa-reply"></i> Reply
+    </button>
+    ${isOwn ? `
+      <button class="action-btn edit-btn" onclick="startEdit('${c.timestamp}', '${c.comment.replace(/'/g, "\\'")}')">
+        <i class="fas fa-edit"></i> Edit
+      </button>
+      <button class="action-btn delete-btn" onclick="deleteMsg('${c.timestamp}')">
+        <i class="fas fa-trash"></i> Delete
+      </button>
+    ` : ''}
   </div>
 `;
-document.body.appendChild(installBox);
 
+// Check if this comment is a reply
+const replyHtml = c.replyTo ? `
+  <div class="quoted-msg">
+    <b>@${c.replyTo.name}</b>: ${c.replyTo.text.substring(0, 50)}${c.replyTo.text.length > 50 ? '...' : ''}
+  </div>
+` : '';
 
-// Capture install event
-window.addEventListener("beforeinstallprompt", (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
+// 2. CLEANER BUBBLE: No more onclick on the container
+msg.innerHTML = `
+  <img src="https://lh3.googleusercontent.com/d/${extractFileId(c.picLink)}" class="avatar">
+  <div class="message-content">
+    <div class="name">${c.name}</div>
+    ${replyHtml} 
+    ${mediaHtml}
+    <div class="text" id="text-${c.timestamp}">${c.comment}</div>
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <span class="time">${formatSmartTime(c.timestamp)}</span>
+      ${actionsHtml}
+    </div>
+  </div>
+`;
+        commentsDiv.appendChild(msg);
+      });
 
-  // Don't show again if already installed once
-  if (!localStorage.getItem("pwaInstalled")) {
-    showInstallBox();
-  }
-});
-
-
-// Show banner
-function showInstallBox() {
-  document.querySelector("#installBox div").style.display = "flex";
-}
-
-
-// Install button logic
-document.getElementById("installBtn").addEventListener("click", async () => {
-  if (!deferredPrompt) return;
-
-  deferredPrompt.prompt();
-  const choice = await deferredPrompt.userChoice;
-
-  if (choice.outcome === "accepted") {
-    localStorage.setItem("pwaInstalled","yes");
-    hideInstallBox();
+      if (!silent || wasAtBottom) scrollToBottom(true);
+    } catch (err) {
+      console.error('Failed to load messages:', err);
+    }
   }
 
-  deferredPrompt = null;
-});
-
-
-// Dismiss button logic
-document.getElementById("dismissBtn").addEventListener("click", hideInstallBox);
-
-
-// Hide banner function
-function hideInstallBox() {
-  document.querySelector("#installBox div").style.display = "none";
+  function setReply(name, text) {
+  replyingTo = { name, text };
+  document.getElementById('reply-text').innerHTML = `Replying to <b>${name}</b>`;
+  document.getElementById('reply-preview').style.display = 'flex';
+  commentInput.focus();
 }
 
+function cancelReply() {
+  replyingTo = null;
+  document.getElementById('reply-preview').style.display = 'none';
+}
 
-// Handle successful install
-window.addEventListener("appinstalled", () => {
-  localStorage.setItem("pwaInstalled","yes");
-  hideInstallBox();
-});
+function showToast(message, type = 'success') {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> <span>${message}</span>`;
+  container.appendChild(toast);
+  setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 500); }, 3000);
+}
+async function deleteMsg(timestamp) {
+  // Create a custom app-styled overlay
+  const overlay = document.createElement('div');
+  overlay.style = "position:fixed; inset:0; background:rgba(15, 23, 42, 0.8); backdrop-filter:blur(8px); z-index:2000; display:flex; align-items:center; justify-content:center; animation: fadeIn 0.2s ease;";
+  
+  overlay.innerHTML = `
+    <div style="background:#1e293b; padding:24px; border-radius:16px; border:1px solid rgba(96, 165, 250, 0.2); text-align:center; max-width:300px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
+      <p style="margin-bottom:8px; font-weight:600; color:#f87171; font-size:1.1rem;">Delete Message?</p>
+      <p style="margin-bottom:24px; color:#94a3b8; font-size:0.9rem;">This action cannot be undone.</p>
+      <div style="display:flex; gap:10px;">
+        <button id="cancelDel" style="flex:1; padding:10px; border-radius:8px; border:none; background:#334155; color:white; cursor:pointer; font-weight:600;">Cancel</button>
+        <button id="confirmDel" style="flex:1; padding:10px; border-radius:8px; border:none; background:#ef4444; color:white; cursor:pointer; font-weight:600;">Delete</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  // Button Logic
+  overlay.querySelector('#cancelDel').onclick = () => overlay.remove();
+  
+  overlay.querySelector('#confirmDel').onclick = async () => {
+    overlay.remove(); // Close modal immediately for smooth UX
+    try {
+      const res = await fetch(scriptUrl, {
+        method: 'POST',
+        body: JSON.stringify({
+          operation: 'deleteComment',
+          name: userName,
+          timestamp: timestamp
+        })
+      });
+      const result = await res.json();
+      if (result.status === 'success') {
+        showToast("Message deleted");
+        loadComments(false);
+      } else {
+        showToast(result.message || "Delete failed", "error");
+      }
+    } catch (err) { 
+      showToast("Connection error", "error"); 
+    }
+  };
+}
+
+function startEdit(timestamp) {
+  const textElement = document.getElementById(`text-${timestamp}`);
+  const originalText = textElement.innerText;
+  
+  // Transform the text bubble into an inline editor
+  textElement.innerHTML = `
+    <textarea class="edit-input" id="edit-field-${timestamp}">${originalText}</textarea>
+    <div class="edit-controls">
+      <button class="action-btn" style="background:#22c55e" onclick="saveEdit('${timestamp}')">Save</button>
+      <button class="action-btn" onclick="loadComments(false)">Cancel</button>
+    </div>
+  `;
+  
+  // Focus the cursor at the end of the text
+  const input = document.getElementById(`edit-field-${timestamp}`);
+  input.focus();
+  input.setSelectionRange(input.value.length, input.value.length);
+}
+
+async function saveEdit(timestamp) {
+  const newText = document.getElementById(`edit-field-${timestamp}`).value.trim();
+  if (!newText) return;
+
+  try {
+    const res = await fetch(scriptUrl, {
+      method: 'POST',
+      body: JSON.stringify({
+        operation: 'editComment',
+        name: userName,
+        timestamp: timestamp,
+        newText: newText
+      })
+    });
+    const result = await res.json();
+    if (result.status === 'success') {
+      showToast("Message updated");
+      loadComments(false);
+    } else {
+      showToast(result.message || "Update failed", "error");
+    }
+  } catch (err) { 
+    showToast("Connection error", "error"); 
+  }
+}
+ async function sendMessage() {
+  const text = commentInput.value.trim();
+  if (!text && !selectedFileData) return;
+
+  sendBtn.disabled = true;
+
+  try {
+    const res = await fetch(scriptUrl, {
+      method: 'POST',
+      body: JSON.stringify({
+        operation: 'postComment',
+        name: userName,
+        comment: text,
+        file: selectedFileData,
+        replyTo: replyingTo // ADD THIS LINE
+      })
+    });
+
+    const result = await res.json();
+    if (result.status === 'success') {
+      commentInput.value = '';
+      cancelReply(); // ADD THIS LINE
+      if(selectedFileData) removeFileBtn.click();
+      await loadComments(false);
+    } else {
+        showToast(result.message || 'Failed to send', 'error');
+      }
+    } catch (err) {
+     showToast('Network error', 'error');
+    } finally {
+      sendBtn.disabled = false;
+    }
+  }
+
+  sendBtn.addEventListener('click', sendMessage);
+  commentInput.addEventListener('keypress', e => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+  loadComments(false);
+  function formatSmartTime(timestamp) {
+  const date = new Date(timestamp);
+  const now = new Date();
+  
+  const isToday = date.toDateString() === now.toDateString();
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const isYesterday = date.toDateString() === yesterday.toDateString();
+  
+  let dayPart;
+  if (isToday) dayPart = "Today";
+  else if (isYesterday) dayPart = "Yesterday";
+  else dayPart = date.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
+  
+  const timePart = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  
+  return `${dayPart} • ${timePart}`;
+}
+
+function updateAnnBadge(total) {
+  const unseen = total - lastSeenAnnCount;
+  const badge = document.getElementById('ann-badge');
+  if (unseen > 0) {
+    badge.textContent = unseen > 99 ? '99+' : unseen;
+    badge.style.display = 'flex';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+  function startPolling() {
+    if (pollingInterval) clearInterval(pollingInterval);
+    pollingInterval = setInterval(() => loadComments(true), 8000);
+  }
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      if (pollingInterval) clearInterval(pollingInterval);
+    } else {
+      loadComments(true);
+      startPolling();
+    }
+  });
+
+  if (!document.hidden) startPolling();
+  commentInput.focus();
 </script>
-
-
-    
 </body>
 </html>
