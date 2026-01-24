@@ -18,7 +18,7 @@
 <link rel="apple-touch-icon" sizes="167x167" href="customer-192.png">
 <!-- Fallback (also uses the same file) -->
 <link rel="apple-touch-icon" href="customer-192.png">
-   <style>
+  <style>
         * {
             margin: 0;
             padding: 0;
@@ -400,6 +400,269 @@
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+/* ==============================================
+   RESPONSIVE ADJUSTMENTS for announce.html
+   Mobile-first - Small phones → Tablets
+   ============================================== */
+
+/* Very small phones (portrait) - iPhone SE, Galaxy small, etc. (~320–390px) */
+@media (max-width: 390px) {
+  body {
+    font-size: 0.94rem;
+  }
+
+  header {
+    padding: 10px 14px;
+  }
+
+  h1 {
+    font-size: 1.35rem;
+  }
+
+  .header-content {
+    gap: 10px;
+  }
+
+  .announcements-container {
+    padding: 12px 14px;
+    gap: 1.2rem;
+  }
+
+  .announcement {
+    padding: 14px;
+    border-radius: 14px;
+    gap: 10px;
+  }
+
+  .avatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  .announcement-content {
+    max-width: calc(100% - 52px);
+  }
+
+  .name {
+    font-size: 0.95rem;
+  }
+
+  .text {
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+
+  .time {
+    font-size: 0.7rem;
+  }
+
+  .media-content {
+    gap: 8px;
+    padding-bottom: 8px;
+  }
+
+  .media-item {
+    width: 85%;           /* Take more width on tiny screens */
+    max-height: 280px;
+  }
+
+  /* Modal adjustments */
+  .modal-content {
+    padding: 20px;
+    width: 94%;
+  }
+
+  .modal-header h2 {
+    font-size: 1.3rem;
+  }
+
+  #ann-text {
+    font-size: 0.95rem;
+    min-height: 110px;
+    padding: 12px;
+  }
+
+  .preview-container {
+    min-height: 140px;
+  }
+
+  .preview-item {
+    flex: 0 0 130px;
+    width: 130px;
+    height: 130px;
+  }
+
+  #send-ann-btn {
+    padding: 10px 20px;
+    font-size: 0.95rem;
+  }
+
+  .action-btn {
+    font-size: 0.7rem;
+  }
+}
+
+/* Small phones & typical mobile (up to ~480–520px) */
+@media (max-width: 520px) {
+  .announcements-container {
+    padding: 16px 14px;
+  }
+
+  .announcement {
+    max-width: 100%;
+  }
+
+  .media-item {
+    width: 82%;
+    max-height: 320px;
+  }
+
+  .preview-item {
+    flex: 0 0 140px;
+    width: 140px;
+    height: 140px;
+  }
+
+  .file-add {
+    font-size: 0.9rem;
+  }
+
+  .close-modal {
+    font-size: 1.4rem;
+  }
+}
+
+/* General mobile / small tablets (up to ~767px) */
+@media (max-width: 767px) {
+  header .header-content {
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .announcements-container {
+    padding: 18px;
+  }
+
+  .announcement {
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  .avatar {
+    width: 44px;
+    height: 44px;
+  }
+
+  .text {
+    margin-top: 10px;
+    line-height: 1.65;
+  }
+
+  .media-content {
+    gap: 10px;
+  }
+
+  .media-item {
+    width: 78%;              /* Still scrollable carousel */
+    max-height: 380px;
+  }
+
+  .media-item iframe {
+    height: 280px;           /* Smaller video previews on mobile */
+  }
+
+  /* Modal - make it feel more spacious on mobile */
+  .modal-content {
+    width: 92%;
+    max-width: 520px;
+    padding: 24px;
+  }
+
+  #ann-text {
+    min-height: 130px;
+  }
+
+  .preview-container {
+    min-height: 160px;
+  }
+
+  .preview-item {
+    flex: 0 0 150px;
+    width: 150px;
+    height: 150px;
+  }
+
+  /* Better touch targets */
+  button,
+  .action-btn,
+  .remove-preview {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+/* Tablets & small landscape phones (768px–1024px) */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .announcements-container {
+    padding: 24px;
+    max-width: 760px;
+  }
+
+  .announcement {
+    padding: 20px;
+  }
+
+  .media-item {
+    width: 70%;
+    max-height: 420px;
+  }
+
+  .modal-content {
+    width: 80%;
+    max-width: 680px;
+  }
+
+  .preview-item {
+    flex: 0 0 180px;
+    width: 180px;
+    height: 180px;
+  }
+}
+
+/* Optional: Prevent iOS zoom on input focus */
+@media (max-width: 767px) {
+  input,
+  textarea,
+  button {
+    font-size: 16px; /* iOS minimum to prevent zoom */
+  }
+}
+
+.view-badge {
+  background: #3b82f6;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: bold;
+  min-width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.8);
+}
+.announcement {
+    margin-bottom: 28px;      /* extra space below each card so the detached badge doesn't overlap the next one */
+    position: relative;       /* important for absolute children */
+}
+.view-badge {
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.5);
+    transform: translateY(4px);   /* slight extra drop */
+}
+
     </style>
 </head>
 <body>
@@ -461,7 +724,7 @@
     <input type="file" id="file-input" accept="image/*,video/*" multiple style="display:none;">
 
     <script>
-        const scriptUrl = 'https://script.google.com/macros/s/AKfycbwwzF1yZ81PgEA8eZJzxpNA2y5CtzUfQhKTQkyUAMn2r6scYeQ5vPS-dwaYCPovDl7O/exec';
+        const scriptUrl = 'https://script.google.com/macros/s/AKfycbweZjwfI10oQ8AY1TGNnbIwXZpIK39pI80h9ZvfTpf3_zef6xteucpD5XhcevYI5PjK/exec';
       let userName = localStorage.getItem('userName');
 
         if (!userName) {
@@ -571,6 +834,9 @@ async function loadAnnouncements(silent = true) {
     try {
         const response = await fetch(`${scriptUrl}?operation=getData`);
         const data = await response.json();
+        const viewsResponse = await fetch(`${scriptUrl}?operation=getAnnouncementViewCounts`);
+        const viewsData = await viewsResponse.json();
+        const viewCounts = viewsData.viewCounts || [];
 
         if (silent && data.announcements?.length === lastAnnouncementCount) return;
 
@@ -582,56 +848,80 @@ async function loadAnnouncements(silent = true) {
         const wasAtBottom = Math.abs(announcementsDiv.scrollHeight - announcementsDiv.clientHeight - announcementsDiv.scrollTop) < 150;
 
         // Render announcements (your existing code, unchanged)
-        data.announcements?.reverse().forEach(c => {
-            const isOwn = c.name === userName;
-            const fileLinks = c.fileLink ? c.fileLink.split(',') : [];
-            const fileTypes = c.fileType ? c.fileType.split(',') : [];
-            let mediaHtml = '';
-            if (fileLinks.length > 0) {
-                mediaHtml = '<div class="media-content">';
-                fileLinks.forEach((link, i) => {
-                    const mediaLink = getLh3Link(link);
-                    const type = fileTypes[i] || '';
-                   const isVideo = type.includes('video') || link.match(/\.(mp4|mov|webm)$/i);
+data.announcements?.reverse().forEach((c, i) => {
+    const isOwn = c.name === userName;
+    const viewCount = viewCounts[i] || 0;  // ← CORRECT: i now matches oldest-first order
+    const fileLinks = c.fileLink ? c.fileLink.split(',') : [];
+    const fileTypes = c.fileType ? c.fileType.split(',') : [];
+    let mediaHtml = '';
+    if (fileLinks.length > 0) {
+        mediaHtml = '<div class="media-content">';
+        fileLinks.forEach((link, fi) => {  // renamed index to avoid conflict
+            const mediaLink = getLh3Link(link);
+            const type = fileTypes[fi] || '';
+            const isVideo = type.includes('video') || link.match(/\.(mp4|mov|webm)$/i);
 
-const mediaItem = isVideo ? 
-    `<iframe src="${link}" 
-             width="100%" 
-             height="400" 
-             allow="autoplay" 
-             frameborder="0" 
-             allowfullscreen></iframe>` :
-    `<img src="${getLh3Link(link)}" loading="lazy">`;
-                    mediaHtml += `<div class="media-item">${mediaItem}</div>`;
-                });
-                mediaHtml += '</div>';
-            }
-            const ann = document.createElement('div');
-            ann.className = `announcement ${isOwn ? 'own' : ''}`;
-            const actionsHtml = isOwn ? `
-                <div class="msg-actions">
-                    <button class="action-btn edit-btn" onclick="startEdit('${c.timestamp}', '${c.comment.replace(/'/g, "\\'")}')">
-                        <i class="fas fa-edit"></i> Edit
-                    </button>
-                    <button class="action-btn delete-btn" onclick="deleteMsg('${c.timestamp}')">
-                        <i class="fas fa-trash"></i> Delete
-                    </button>
-                </div>
-            ` : '';
-            ann.innerHTML = `
-                <img src="https://lh3.googleusercontent.com/d/${extractFileId(c.picLink)}" class="avatar">
-                <div class="announcement-content">
-                    <div class="name">${c.name}</div>
-                    ${mediaHtml}
-                    <div class="text" id="text-${c.timestamp}">${c.comment}</div>
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span class="time">${formatSmartTime(c.timestamp)}</span>
-                        ${actionsHtml}
-                    </div>
-                </div>
-            `;
-            announcementsDiv.appendChild(ann);
+            const mediaItem = isVideo ? 
+                `<iframe src="${link}" 
+                         width="100%" 
+                         height="400" 
+                         allow="autoplay" 
+                         frameborder="0" 
+                         allowfullscreen></iframe>` :
+                `<img src="${getLh3Link(link)}" loading="lazy">`;
+            mediaHtml += `<div class="media-item">${mediaItem}</div>`;
         });
+        mediaHtml += '</div>';
+    }
+    const ann = document.createElement('div');
+    ann.className = `announcement ${isOwn ? 'own' : ''}`;
+    const actionsHtml = isOwn ? `
+        <div class="msg-actions">
+            <button class="action-btn edit-btn" onclick="startEdit('${c.timestamp}', '${c.comment.replace(/'/g, "\\'")}')">
+                <i class="fas fa-edit"></i> Edit
+            </button>
+            <button class="action-btn delete-btn" onclick="deleteMsg('${c.timestamp}')">
+                <i class="fas fa-trash"></i> Delete
+            </button>
+        </div>
+    ` : '';
+
+    ann.innerHTML = `
+        <img src="https://lh3.googleusercontent.com/d/${extractFileId(c.picLink)}" class="avatar">
+        
+        <div style="position: relative; width: 100%;">
+            <div class="announcement-content">
+                <div class="name">${c.name}</div>
+                ${mediaHtml}
+                <div class="text" id="text-${c.timestamp}">${c.comment}</div>
+            </div>
+
+            <span class="time" style="
+                display: block;
+                margin-top: 12px;
+                font-size: 0.75rem;
+                color: #94a3b8;
+                opacity: 0.8;
+            ">
+                ${formatSmartTime(c.timestamp)}
+            </span>
+
+            <div style="
+                position: absolute;
+                bottom: -20px;
+                right: 16px;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                z-index: 2;
+            ">
+                <span class="view-badge">${viewCount}</span>
+                ${actionsHtml}
+            </div>
+        </div>
+    `;
+    announcementsDiv.appendChild(ann);
+});
 
         if (!silent || wasAtBottom) scrollToBottom(true);
     } catch (err) {
@@ -814,10 +1104,11 @@ async function markAnnSeen() {
     const response = await fetch(`${scriptUrl}?operation=getData`);
     const data = await response.json();
     const currentTotal = data.announcements?.length || 0;
-    localStorage.setItem('lastSeenAnnCount', currentTotal);
-    
-    // Optional: immediately update badge in channel (if open in another tab)
-    // But usually not needed since user is now on announce.html
+    await fetch(scriptUrl, {
+      method: 'POST',
+      body: JSON.stringify({ operation: 'markAnnouncementsSeen', name: userName, seenUpTo: currentTotal })
+    });
+    localStorage.setItem('lastSeenAnnCount', currentTotal); // Fallback
   } catch (err) {
     console.error("Failed to mark announcements as seen", err);
   }

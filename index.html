@@ -25,16 +25,24 @@
       padding: 0;
       box-sizing: border-box;
     }
+html, body {
+  width: 100%;
+  overflow-x: hidden; /* This kills the horizontal swipe */
+  position: relative;
+  margin: 0;
+  padding: 0;
+}
 
-    body {
-      height: 100vh; /* Set a fixed height */
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-      background: linear-gradient(135deg, #0f172a, #1e293b);
-      color: #e2e8f0;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden; /* Prevent the whole page from scrolling */
-    }
+   body {
+  height: 100dvh;                   /* modern phones — dynamic viewport */
+  min-height: -webkit-fill-available;  /* important iOS fallback */
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  color: #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
 
     header {
       background: rgba(15, 23, 42, 0.85);
@@ -142,32 +150,36 @@
       color: rgba(255,255,255,0.7);
     }
 
-   .input-area {
-      background: rgba(15, 23, 42, 1); /* Solid material */
-      padding: 16px 20px;
-      border-top: 1px solid rgba(96, 165, 250, 0.3);
-      flex-shrink: 0; /* Prevents the input from squishing */
-    }
-    .input-wrapper {
-      max-width: 900px;
-      margin: 0 auto;
-      display: flex;
-      gap: 12px;
-      align-items: center;
-    }
+  .input-area {
+  background: rgba(15, 23, 42, 0.98);
+  padding: 12px; /* Uniform padding */
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid rgba(96, 165, 250, 0.3);
+  flex-shrink: 0;
+  width: 100%;
+  box-sizing: border-box; /* Crucial: includes padding in the 100% width */
+}
 
-    #comment {
-      flex: 1;
-      padding: 14px 18px;
-      border: none;
-      border-radius: 24px;
-      background: rgba(255,255,255,0.08);
-      color: white;
-      font-size: 1rem;
-      outline: none;
-      transition: all 0.3s ease;
-    }
+.input-wrapper {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  gap: 8px; /* Slightly tighter for mobile */
+  align-items: center;
+  width: 100%;
+}
 
+#comment {
+  flex: 1;
+  min-width: 0; /* Prevents input from pushing flex container wide */
+  padding: 12px 16px;
+  border-radius: 24px;
+  background: rgba(255,255,255,0.08);
+  color: white;
+  font-size: 16px; /* Prevents iOS zoom-on-focus */
+  border: none;
+  outline: none;
+}
     #comment:focus {
       background: rgba(255,255,255,0.14);
       box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.3);
@@ -402,7 +414,209 @@
   width: 100%;
 }
 
+/* ==============================================
+   RESPONSIVE ADJUSTMENTS - Mobile-first
+   ============================================== */
 
+/* Extra small phones (portrait) - up to ~390px (iPhone SE, etc.) */
+@media (max-width: 390px) {
+  body {
+    font-size: 0.95rem; /* Slightly smaller base font */
+  }
+
+  header {
+    padding: 10px 14px;
+  }
+
+  h1 {
+    font-size: 1.3rem;
+  }
+
+  .chat-container {
+    padding: 12px 14px;
+    gap: 0.8rem;
+  }
+
+  .message {
+    max-width: 92%;          /* Even wider on tiny screens */
+    gap: 8px;
+  }
+
+  .avatar {
+    width: 36px;
+    height: 36px;
+  }
+
+  .message-content {
+    padding: 10px 14px;
+    max-width: calc(100% - 50px);
+  }
+
+  .input-area {
+    padding: 12px 14px;
+  }
+
+  #comment {
+    font-size: 0.95rem;
+    padding: 12px 16px;
+  }
+
+  button {
+    width: 46px;
+    height: 46px;
+    font-size: 1.1rem;
+  }
+
+  .media-content img,
+  .media-content video {
+    max-height: 240px;      /* Smaller media on very small screens */
+  }
+
+  .video-container iframe {
+    min-height: 160px;
+  }
+
+  .audio-container iframe {
+    height: 70px;
+  }
+}
+
+/* Small phones & typical mobile landscape (up to ~480-500px) */
+@media (max-width: 500px) {
+  .header-content {
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: space-between;
+  }
+
+  .header-content > div:last-child {
+    gap: 12px;
+  }
+
+  .message {
+    max-width: 90%;
+  }
+
+  .name {
+    font-size: 0.85rem;
+  }
+
+  .time {
+    font-size: 0.68rem;
+  }
+
+  .msg-actions {
+    font-size: 0.7rem;
+  }
+
+  .input-wrapper {
+    gap: 8px;
+  }
+
+  #preview-bar,
+  #reply-preview {
+    padding: 8px 14px;
+    font-size: 0.85rem;
+  }
+
+  #preview-bar img,
+  #preview-bar video {
+    height: 45px;
+  }
+}
+
+/* General mobile adjustments (up to tablets ~767px) */
+@media (max-width: 767px) {
+  body {
+    overflow: hidden; /* already have, but reinforce */
+  }
+
+  .chat-container {
+    padding: 16px;
+  }
+
+  .message {
+    max-width: 88%;           /* Wider bubbles on mobile */
+  }
+
+  .message.own {
+    max-width: 90%;
+  }
+
+  .message:has(.video-container) {
+    max-width: 96%;
+  }
+
+  .message:has(.audio-container) {
+    max-width: 92%;
+  }
+
+  .message-content {
+    border-radius: 16px;
+  }
+
+  .message.own .message-content {
+    border-radius: 16px;
+  }
+
+  .video-container iframe {
+    max-height: 55vh;         /* Prevent huge videos on mobile */
+  }
+
+  .input-area {
+    padding: 14px 16px;
+  }
+
+  #comment {
+    font-size: 1rem;
+  }
+
+  /* Hide or shrink less important elements if needed */
+  .header-content > div:first-child h1 {
+    font-size: 1.4rem;
+  }
+}
+
+/* Tablets & small landscape phones (optional fine-tuning) */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .chat-container {
+    padding: 24px;
+  }
+
+  .message {
+    max-width: 80%;           /* Back to original on tablets */
+  }
+}
+
+/* Optional: Prevent zoom issues & improve touch targets */
+@media (max-width: 767px) {
+  button,
+  .action-btn {
+    min-width: 44px;           /* iOS Human Interface Guidelines touch target */
+    min-height: 44px;
+  }
+
+  input,
+  textarea,
+  button {
+    font-size: 16px;           /* Prevent iOS zoom on focus */
+  }
+}
+
+/* Fix for iOS Safari – respects notch, dynamic island, home indicator */
+@supports (padding-top: env(safe-area-inset-top)) {
+  header {
+    padding-top: calc(14px + env(safe-area-inset-top));
+  }
+  .input-area {
+    padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  }
+}
+
+/* Prevent last messages from being hidden under the input bar */
+.chat-container {
+  padding-bottom: 90px;           /* ← add or increase this value */
+}
 
 
   </style>
@@ -509,9 +723,15 @@
 
     <!-- Hover effect for camera -->
     <style>
-      #profile-modal div[style*="position:relative; width:160px"]:hover label {
-        opacity: 1;
-      }
+     #profile-modal > div {
+  background: rgba(30,41,59,0.95);
+  width: 95%;      /* Changed from 100% to 95% to give a tiny margin */
+  max-width: 420px;
+  border-radius: 24px;
+  padding: 20px;   /* Reduced padding for mobile */
+  box-sizing: border-box; /* Ensures padding doesn't add to width */
+  margin: auto;    /* Centers it */
+}
     </style>
 
     <!-- Name Input -->
@@ -537,7 +757,7 @@
 </div>
 
  <script>
-  const scriptUrl = 'https://script.google.com/macros/s/AKfycbwwzF1yZ81PgEA8eZJzxpNA2y5CtzUfQhKTQkyUAMn2r6scYeQ5vPS-dwaYCPovDl7O/exec';
+  const scriptUrl = 'https://script.google.com/macros/s/AKfycbweZjwfI10oQ8AY1TGNnbIwXZpIK39pI80h9ZvfTpf3_zef6xteucpD5XhcevYI5PjK/exec';
 
  let userName = localStorage.getItem('userName');
 
@@ -1033,17 +1253,50 @@ async function saveEdit(timestamp) {
   return `${dayPart} • ${timePart}`;
 }
 
-function updateAnnBadge(total) {
-  const unseen = total - lastSeenAnnCount;
-  const badge = document.getElementById('ann-badge');
-  if (unseen > 0) {
-    badge.textContent = unseen > 99 ? '99+' : unseen;
-    badge.style.display = 'flex';
-  } else {
-    badge.style.display = 'none';
-  }
-}
+async function updateAnnBadge() {
+    const badge = document.getElementById('ann-badge');
 
+    try {
+        // Primary method: get real unseen count from server
+        const res = await fetch(`${scriptUrl}?operation=getUnseenAnnCount&name=${encodeURIComponent(userName)}`);
+        const data = await res.json();
+
+        if (data.status === 'error') throw new Error(data.message || 'Server error');
+
+        const unseen = data.unseenCount || 0;
+
+        if (unseen > 0) {
+            badge.textContent = unseen > 99 ? '99+' : unseen;
+            badge.style.display = 'flex';
+        } else {
+            badge.style.display = 'none';
+        }
+
+        // Keep localStorage in sync as fallback / offline support
+        localStorage.setItem('lastSeenAnnCount', data.seenUpTo || 0);
+
+    } catch (err) {
+        console.warn('Could not fetch unseen count → using local fallback', err);
+
+        // Fallback: old localStorage method (still works if server is down)
+        const totalResponse = await fetch(`${scriptUrl}?operation=getData`).catch(() => null);
+        let total = 0;
+        if (totalResponse?.ok) {
+            const data = await totalResponse.json();
+            total = data.announcements?.length || 0;
+        }
+
+        const lastSeen = parseInt(localStorage.getItem('lastSeenAnnCount') || '0', 10);
+        const unseen = Math.max(0, total - lastSeen);
+
+        if (unseen > 0) {
+            badge.textContent = unseen > 99 ? '99+' : unseen;
+            badge.style.display = 'flex';
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+}
   function startPolling() {
     if (pollingInterval) clearInterval(pollingInterval);
     pollingInterval = setInterval(() => loadComments(true), 8000);
