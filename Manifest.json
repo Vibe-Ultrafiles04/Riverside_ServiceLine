@@ -1,28 +1,28 @@
 {
-  "name": "Deliverance Church Int'l Riverside media",
-  "short_name": "DC Riverside media",
-  "description": "Join the Deliverance Church Riverside community – chat, announcements & more",
-  "start_url": "/login.html",
- "display": "standalone",
+  "id": "/Riverside_ServiceLine/",
+  "name": "DC Riverside Media",
+  "short_name": "DC Media",
+  "description": "Deliverance Church Riverside media, announcements and updates",
+  "start_url": "/Riverside_ServiceLine/login.html",
+  "scope": "/Riverside_ServiceLine/",
+  "display": "standalone",
   "display_override": ["standalone", "minimal-ui"],
   "background_color": "#ffffff",
   "theme_color": "#317EFB",
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "customer-192.png",
+      "src": "/Riverside_ServiceLine/customer-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "customer-512.png",
+      "src": "/Riverside_ServiceLine/customer-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     }
   ],
-  "scope": "/",
-  "gcm_sender_id": "103953800507",
   "prefer_related_applications": false
 }
