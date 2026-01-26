@@ -437,103 +437,14 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
 });
 
   </script>
-  <script>
-  // ────────────────────────────────────────────────
-  // PWA Install Prompt Logic
-  // ────────────────────────────────────────────────
-  let deferredPrompt = null;
-  const installBanner = document.createElement('div');
-  installBanner.id = 'install-banner';
-  installBanner.style.cssText = `
-    position: fixed; bottom: 16px; left: 16px; right: 16px; 
-    background: rgba(30,41,59,0.95); color: white; 
-    padding: 16px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-    z-index: 10000; display: none; flex-direction: column; gap: 12px;
-    backdrop-filter: blur(10px); border: 1px solid rgba(96,165,250,0.3);
-    font-family: inherit;
-  `;
-  installBanner.innerHTML = `
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-      <div>
-        <strong style="color:#60a5fa">Add to Home Screen</strong><br>
-        <small>Get faster access & offline support</small>
-      </div>
-      <div style="display:flex; gap:12px;">
-        <button id="install-btn" style="
-          background: linear-gradient(90deg, #3b82f6, #60a5fa);
-          color: white; border: none; padding: 10px 20px;
-          border-radius: 12px; font-weight: 600; cursor: pointer;
-        ">Install</button>
-        <button id="dismiss-install" style="
-          background: transparent; color: #94a3b8; border: none;
-          font-size: 1.1rem; cursor: pointer;
-        ">×</button>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(installBanner);
 
-  // Listen for the browser's installability signal
- window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-
-  // ✅ show immediately (before login)
-  installBanner.style.display = 'flex';
-});
-
-
-  // User clicks Install
-  document.addEventListener('click', async (e) => {
-    if (e.target.id === 'install-btn' && deferredPrompt) {
-      // Show the native prompt
-      deferredPrompt.prompt();
-
-      // Wait for user choice
-      const { outcome } = await deferredPrompt.userChoice;
-      
-      if (outcome === 'accepted') {
-        console.log('PWA installed');
-        installBanner.style.display = 'none';
-      } else {
-        console.log('User dismissed install');
-      }
-
-      // Clean up
-      deferredPrompt = null;
-    }
-  });
-
-  // Dismiss button
-  document.getElementById('dismiss-install')?.addEventListener('click', () => {
-    installBanner.style.display = 'none';
-    // Optional: remember dismissal for X days using localStorage
-    localStorage.setItem('install-dismissed', Date.now());
-  });
-
-  // Optional: re-show banner on next visits if not installed & not recently dismissed
-  if (!localStorage.getItem('userName') && 
-      !localStorage.getItem('install-dismissed')) {
-    // You could show a softer hint here if you want
-  }
-
-  // ────────────────────────────────────────────────
-  // Service Worker registration (unchanged)
-  // ────────────────────────────────────────────────
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js')
-        .then(reg => console.log('Service Worker registered → scope:', reg.scope))
-        .catch(err => console.error('Service Worker registration failed:', err));
-    });
-  }
-
-  // Optional: listen for successful install (mostly Chrome)
-  window.addEventListener('appinstalled', () => {
-    console.log('PWA was installed');
-    installBanner.style.display = 'none';
-    // You can show a toast: "App installed! 🎉"
-  });
+<script>
+ if ('serviceWorker' in navigator) {
+  // Use './' to stay inside the /The-Riverside-Connect/ subfolder
+  navigator.serviceWorker.register('./sw.js', { scope: './' })
+    .then(reg => console.log('✅ SW registered in subfolder scope'))
+    .catch(err => console.error('❌ SW registration failed:', err));
+}
 </script>
 </body>
 </html>
