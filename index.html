@@ -1390,60 +1390,61 @@ async function updateAnnBadge() {
   const installBtn = document.getElementById('installAppBtn');
   const installModal = document.getElementById('installModal');
 
-  // 1. Register Service Worker (Crucial for the 'threshold')
+  // --- NEW: Hide button immediately if already in "standalone" (installed) mode ---
+  if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+    if (installBtn) installBtn.style.display = 'none';
+  }
+
+  // 1. Register Service Worker
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      // Using './' ensures it works within the /The-Riverside-Connect/ subfolder
       navigator.serviceWorker.register('./sw.js')
-        .then(reg => console.log('SW registered for Riverside service'))
-        .catch(err => console.error('SW registration failed:', err));
+        .then(reg => console.log('SW registered'))
+        .catch(err => console.error('SW failed:', err));
     });
   }
 
-  // 2. Listen for the browser's installability event
+  // 2. Capture the install event
   window.addEventListener('beforeinstallprompt', (e) => {
-    // Prevent the mini-infobar from appearing on mobile
     e.preventDefault();
-    // Stash the event so it can be triggered by your 'Yes' button
     deferredPrompt = e;
-    // Show your custom install button now that we know the PWA is valid
+    // Only show button if not already installed
     if (installBtn) installBtn.style.display = 'block';
   });
 
-  // 3. Handle the 'Yes' click in your custom modal
+  // 3. The "Yes" Button Logic
   document.getElementById('installYes').addEventListener('click', async () => {
     if (deferredPrompt) {
-      // Show the actual browser install prompt
       deferredPrompt.prompt();
-      
-      // Wait for the user to respond
       const { outcome } = await deferredPrompt.userChoice;
-      console.log(`User response: ${outcome}`);
       
-      // Clean up
+      if (outcome === 'accepted') {
+        console.log('User accepted install');
+        if (installBtn) installBtn.style.display = 'none'; // Hide button
+      }
       deferredPrompt = null;
       installModal.style.display = 'none';
-      if (installBtn) installBtn.style.display = 'none';
     }
   });
 
-  // 4. Manual trigger for your custom modal
+  // 4. Manual Modal Trigger
   if (installBtn) {
     installBtn.addEventListener('click', () => {
       installModal.style.display = 'flex';
     });
   }
 
-  // 5. Cancel logic
+  // 5. Cancel Button
   document.getElementById('installNo').addEventListener('click', () => {
     installModal.style.display = 'none';
   });
 
-  // 6. Hide button if already installed
+  // 6. --- NEW: Final safeguard to hide button when installation finishes ---
   window.addEventListener('appinstalled', () => {
-    deferredPrompt = null;
+    console.log('App installed successfully');
     if (installBtn) installBtn.style.display = 'none';
-    console.log('Riverside service was installed.');
+    installModal.style.display = 'none';
+    deferredPrompt = null;
   });
 </script>
 
