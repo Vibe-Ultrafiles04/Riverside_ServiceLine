@@ -1395,7 +1395,7 @@ async function updateAnnBadge() {
     window.addEventListener('load', () => {
       // Using './' ensures it works within the /The-Riverside-Connect/ subfolder
       navigator.serviceWorker.register('./sw.js')
-        .then(reg => console.log('SW registered for Riverside Connect'))
+        .then(reg => console.log('SW registered for Riverside service'))
         .catch(err => console.error('SW registration failed:', err));
     });
   }
@@ -1443,7 +1443,7 @@ async function updateAnnBadge() {
   window.addEventListener('appinstalled', () => {
     deferredPrompt = null;
     if (installBtn) installBtn.style.display = 'none';
-    console.log('Riverside Connect was installed.');
+    console.log('Riverside service was installed.');
   });
 </script>
 
