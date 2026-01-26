@@ -3,7 +3,7 @@
   "short_name": "Riverside service",
   "description": "Join the Deliverance Church Riverside service line",
   "start_url": "./index.html",
-  "id": "./",
+  "id": "/service/",
   "scope": "./",
   "display": "standalone",
   "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
