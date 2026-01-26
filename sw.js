@@ -12,7 +12,7 @@ const STATIC_ASSETS = [
   '/manifest.json',
   '/customer-192.png',
   '/customer-512.png',
-  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css',
+
   // Add these if you have them locally or want stronger offline
   // '/icons/icon-192-maskable.png',
   // '/icons/icon-512-maskable.png',
