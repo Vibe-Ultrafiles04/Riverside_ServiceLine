@@ -280,6 +280,10 @@
   if (localStorage.getItem('userName')) {
     window.location.replace('/index.html');  // replace → doesn't add to history
   }
+
+  if (localStorage.getItem('userName') && localStorage.getItem('userIdCode')) {
+  window.location.replace('/index.html');
+}
 </script>
 
 <div id="toast-container"></div>
@@ -335,11 +339,21 @@
 </button>
 
     </form>
+
+    <p id="recoverLink" style="margin-top: 1rem; color: #60a5fa; cursor: pointer;">Recover existing account?</p>
+<div id="recoverForm" style="display: none;">
+  <div class="form-group">
+    <label for="recoveryCode">Enter Recovery Code</label>
+    <input type="text" id="recoveryCode" placeholder="Your unique identity code" required autocomplete="off">
+  </div>
+  <button id="recoverBtn">Recover Account</button>
+</div>
+
   </div>
 
   <script>
     // Your existing JavaScript remains 100% unchanged and works perfectly
-    const scriptUrl = 'https://script.google.com/macros/s/AKfycbweZjwfI10oQ8AY1TGNnbIwXZpIK39pI80h9ZvfTpf3_zef6xteucpD5XhcevYI5PjK/exec';
+    const scriptUrl = 'https://script.google.com/macros/s/AKfycbwDVJJqLgU7jNaexIIZ8rHKzuzFdBSPLPAQ2F6Wxw9SAFMetrvyNmqF7PKtvnO2Lxks/exec';
 function showToast(message) {
   const container = document.getElementById('toast-container');
   const toast = document.createElement('div');
@@ -415,7 +429,8 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     if (result.picLink) {
       localStorage.setItem('userPicLink', result.picLink);
     }
-    
+    localStorage.setItem('userIdCode', result.identityCode);
+showToast(`Account created! Your recovery code is: ${result.identityCode}. Save this securely.`);
     window.location.href = 'index.html';
   }, 800); // 0.8 seconds
 } else {
@@ -434,6 +449,49 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
   };
 
   reader.readAsDataURL(file);
+});
+
+
+document.getElementById('recoverLink').addEventListener('click', () => {
+  document.getElementById('recoverForm').style.display = 'block';
+  document.getElementById('recoverLink').style.display = 'none';
+});
+
+document.getElementById('recoverBtn').addEventListener('click', async () => {
+  const code = document.getElementById('recoveryCode').value.trim();
+  if (!code) return showToast('Enter your recovery code.');
+
+  const recoverBtn = document.getElementById('recoverBtn');
+  recoverBtn.disabled = true;
+  recoverBtn.innerHTML = '<span class="spinner"></span> Recovering...';
+
+  try {
+    const response = await fetch(scriptUrl, {
+      method: 'POST',
+      body: JSON.stringify({
+        operation: 'recover',
+        identityCode: code
+      })
+    });
+
+    const result = await response.json();
+
+    if (result.status === 'success') {
+      localStorage.setItem('userName', result.name);
+      localStorage.setItem('userPicLink', result.picLink);
+      localStorage.setItem('userIdCode', code);
+      showToast('Account recovered!');
+      setTimeout(() => window.location.href = 'index.html', 1000);
+    } else {
+      showToast(result.message || 'Recovery failed');
+      recoverBtn.disabled = false;
+      recoverBtn.innerHTML = 'Recover Account';
+    }
+  } catch (err) {
+    showToast('Network error: ' + err.message);
+    recoverBtn.disabled = false;
+    recoverBtn.innerHTML = 'Recover Account';
+  }
 });
 
   </script>

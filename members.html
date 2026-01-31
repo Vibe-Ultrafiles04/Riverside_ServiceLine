@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+   <title>Riverside service</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+ <link rel="manifest" href="manifest.json">
+
+ <!-- iOS Safari home screen support -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Riverside service">
+
+<!-- Reuse your existing 192×192 icon for Apple devices -->
+<link rel="apple-touch-icon" sizes="180x180" href="customer-192.png">
+<link rel="apple-touch-icon" sizes="152x152" href="customer-192.png">
+<link rel="apple-touch-icon" sizes="167x167" href="customer-192.png">
+<!-- Fallback (also uses the same file) -->
+<link rel="apple-touch-icon" href="customer-192.png">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      color: #e2e8f0;
+      min-height: 100dvh;
+      padding: 16px;
+    }
+    header {
+      background: rgba(15, 23, 42, 0.9);
+      backdrop-filter: blur(10px);
+      padding: 16px 20px;
+      border-bottom: 1px solid rgba(96, 165, 250, 0.2);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      margin: -16px -16px 24px -16px;
+    }
+    .header-content {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    h1 {
+      font-size: 1.6rem;
+      color: #60a5fa;
+    }
+    .back-btn {
+      color: #60a5fa;
+      font-size: 1.4rem;
+      text-decoration: none;
+      padding: 8px;
+    }
+    .members-grid {
+      max-width: 900px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 20px;
+      padding: 12px;
+    }
+    .member-card {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(6px);
+      border-radius: 16px;
+      padding: 20px 12px;
+      text-align: center;
+      border: 1px solid rgba(96, 165, 250, 0.15);
+      transition: all 0.2s ease;
+    }
+    .member-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+      border-color: rgba(96, 165, 250, 0.4);
+    }
+    .member-avatar {
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid #60a5fa;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 16px rgba(59, 130, 246, 0.25);
+    }
+    .member-name {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #e2e8f0;
+      margin-bottom: 4px;
+    }
+    .member-joined {
+      font-size: 0.82rem;
+      color: #94a3b8;
+    }
+    .empty-state {
+      text-align: center;
+      color: #94a3b8;
+      padding: 80px 20px;
+      font-size: 1.1rem;
+    }
+    .loader {
+      text-align: center;
+      padding: 60px;
+      color: #60a5fa;
+      font-size: 1.2rem;
+    }
+    @media (max-width: 500px) {
+      .members-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 16px;
+      }
+      .member-avatar {
+        width: 80px;
+        height: 80px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-content">
+    <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+    <h1>Members</h1>
+    <div style="width:44px;"></div> <!-- spacer -->
+  </div>
+</header>
+
+<!-- Search Bar -->
+<div style="max-width: 900px; margin: 0 auto 24px; position: relative;">
+  <input 
+    type="text" 
+    id="searchInput" 
+    placeholder="Search by name or recovery code..." 
+    autocomplete="off"
+    style="
+      width: 100%;
+      padding: 14px 16px 14px 48px;
+      border-radius: 50px;
+      background: rgba(30,41,59,0.7);
+      border: 1px solid rgba(96,165,250,0.3);
+      color: white;
+      font-size: 1rem;
+      outline: none;
+      transition: all 0.3s;
+    "
+  >
+  <i class="fas fa-search" 
+     style="position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: #60a5fa; font-size: 1.2rem;">
+  </i>
+</div>
+
+<div id="loader" class="loader">Loading members...</div>
+<div id="members-grid" class="members-grid" style="display:none;"></div>
+<div id="empty" class="empty-state" style="display:none;">
+  <i class="fas fa-users" style="font-size:3.8rem; opacity:0.4; margin-bottom:16px;"></i><br>
+  No members found
+</div>
+
+
+
+<script>
+const scriptUrl = 'https://script.google.com/macros/s/AKfycbwDVJJqLgU7jNaexIIZ8rHKzuzFdBSPLPAQ2F6Wxw9SAFMetrvyNmqF7PKtvnO2Lxks/exec';
+
+let allUsers = []; // ← we'll store the full list here
+
+async function loadMembers() {
+  try {
+    const res = await fetch(`${scriptUrl}?operation=getMembers`);
+    const data = await res.json();
+
+    document.getElementById('loader').style.display = 'none';
+
+    if (data.status === 'error' || !data.users) {
+      document.getElementById('empty').innerHTML = 
+        `<strong>Error:</strong> ${data.message || 'Could not load members'}`;
+      document.getElementById('empty').style.display = 'block';
+      return;
+    }
+
+    if (data.users.length === 0) {
+      document.getElementById('empty').style.display = 'block';
+      return;
+    }
+
+    // Store full list for filtering
+    allUsers = data.users;
+
+    // Initial render
+    renderMembers(allUsers);
+
+    // Show grid
+    document.getElementById('members-grid').style.display = 'grid';
+
+  } catch (err) {
+    console.error(err);
+    document.getElementById('loader').style.display = 'none';
+    document.getElementById('empty').innerHTML = 'Failed to load members<br><small>Check connection</small>';
+    document.getElementById('empty').style.display = 'block';
+  }
+}
+
+function renderMembers(users) {
+  const grid = document.getElementById('members-grid');
+  grid.innerHTML = '';
+
+  if (users.length === 0) {
+    document.getElementById('empty').style.display = 'block';
+    return;
+  }
+
+  document.getElementById('empty').style.display = 'none';
+
+  users.forEach(user => {
+    const card = document.createElement('div');
+    card.className = 'member-card';
+
+    const img = document.createElement('img');
+    img.className = 'member-avatar';
+    img.alt = user.name;
+    const picUrl = user.picLink ? `https://lh3.googleusercontent.com/d/${extractFileId(user.picLink)}` : '';
+    img.src = picUrl || 'https://via.placeholder.com/96?text=@';
+    img.onerror = () => { img.src = 'https://via.placeholder.com/96?text=@'; };
+
+    const name = document.createElement('div');
+    name.className = 'member-name';
+    name.textContent = user.name;
+
+    const joined = document.createElement('div');
+    joined.className = 'member-joined';
+    joined.textContent = user.date ? ('Joined ' + formatDate(user.date)) : 'Joined —';
+
+    // Status display
+    const statusDiv = document.createElement('div');
+    statusDiv.style = 'margin: 8px 0; font-size: 0.9rem; font-weight: 500;';
+    
+    let statusText = user.status.charAt(0).toUpperCase() + user.status.slice(1);
+    let color = '#94a3b8';
+    if (user.status === 'approved') color = '#22c55e';
+    if (user.status === 'blocked') color = '#ef4444';
+    
+    statusDiv.innerHTML = `Status: <span style="color:${color}">${statusText}</span>`;
+
+    // Control buttons
+    const actions = document.createElement('div');
+    actions.style = 'margin-top: 12px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;';
+
+    if (user.status !== 'approved') {
+      const approveBtn = document.createElement('button');
+      approveBtn.textContent = 'Approve';
+      approveBtn.style = 'padding: 8px 16px; background: #22c55e; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;';
+      approveBtn.onclick = () => updateUserStatus(user.name, 'approved');
+      actions.appendChild(approveBtn);
+    }
+
+    if (user.status !== 'blocked') {
+      const blockBtn = document.createElement('button');
+      blockBtn.textContent = 'Block';
+      blockBtn.style = 'padding: 8px 16px; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;';
+      blockBtn.onclick = () => updateUserStatus(user.name, 'blocked');
+      actions.appendChild(blockBtn);
+    }
+
+    card.append(img, name, joined, statusDiv, actions);
+    grid.appendChild(card);
+  });
+}
+
+// Real-time search filter
+document.getElementById('searchInput')?.addEventListener('input', (e) => {
+  const query = e.target.value.toLowerCase().trim();
+
+  if (!query) {
+    renderMembers(allUsers);
+    return;
+  }
+
+  const filtered = allUsers.filter(user => {
+    const nameMatch = user.name.toLowerCase().includes(query);
+    const codeMatch = (user.identityCode || '').toLowerCase().includes(query);
+    return nameMatch || codeMatch;
+  });
+
+  renderMembers(filtered);
+});
+
+function extractFileId(url) {
+  if (!url) return '';
+  const match = url.match(/[-\w]{25,}/);
+  return match ? match[0] : '';
+}
+
+function formatDate(isoString) {
+  if (!isoString) return '—';
+  try {
+    const d = new Date(isoString);
+    return d.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric' 
+    });
+  } catch {
+    return '—';
+  }
+}
+
+async function updateUserStatus(targetName, newStatus) {
+  if (!confirm(`Are you sure you want to set ${targetName} to ${newStatus}?`)) return;
+
+  try {
+    const res = await fetch(scriptUrl, {
+      method: 'POST',
+      body: JSON.stringify({
+        operation: 'updateUserStatus',
+        targetName,
+        newStatus
+      })
+    });
+
+    const result = await res.json();
+
+    if (result.status === 'success') {
+      alert(`${targetName} is now ${newStatus}`);
+      loadMembers(); // refresh full list
+    } else {
+      alert('Error: ' + (result.message || 'Unknown error'));
+    }
+  } catch (err) {
+    alert('Network error while updating status');
+    console.error(err);
+  }
+}
+
+window.addEventListener('load', loadMembers);
+</script>
+<script>
+ if ('serviceWorker' in navigator) {
+  // Use './' to stay inside the /The-Riverside-Connect/ subfolder
+  navigator.serviceWorker.register('./sw.js', { scope: './' })
+    .then(reg => console.log('✅ SW registered in subfolder scope'))
+    .catch(err => console.error('❌ SW registration failed:', err));
+}
+</script>
+</body>
+</html>
