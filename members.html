@@ -169,7 +169,7 @@
 
 
 <script>
-const scriptUrl = 'https://script.google.com/macros/s/AKfycbwsbPqeRiqW2it0f1UpTNMRba_YQ5KO7wo2syRn_u7CvxM5oEyct6n9zq0lntfbRTm4/exec';
+const scriptUrl = 'https://script.google.com/macros/s/AKfycbx1N-fwReLm4Ad1_ArlVBqxQ1ILrv0-LxxpLe5QMUS7W8KCBGTPcw6JDl-BeFWZTsnt/exec';
 
 let allUsers = []; // ← we'll store the full list here
 
@@ -261,6 +261,7 @@ function renderMembers(users) {
       approveBtn.onclick = () => updateUserStatus(user.name, 'approved');
       actions.appendChild(approveBtn);
     }
+    
 
     if (user.status !== 'blocked') {
       const blockBtn = document.createElement('button');
@@ -269,6 +270,15 @@ function renderMembers(users) {
       blockBtn.onclick = () => updateUserStatus(user.name, 'blocked');
       actions.appendChild(blockBtn);
     }
+
+   if (user.status === 'approved') {
+  const authBtn = document.createElement('button');
+  authBtn.textContent = 'Authorise';
+  authBtn.style = 'padding:8px 16px; background:#8b5cf6; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:600;';
+  
+  authBtn.onclick = () => authoriseUser(user.name);
+  actions.appendChild(authBtn);
+}
 
     card.append(img, name, joined, statusDiv, actions);
     grid.appendChild(card);
@@ -313,6 +323,67 @@ function formatDate(isoString) {
   }
 }
 
+async function authoriseUser(username) {
+  if (!confirm(`Authorise ${username} to post in all channels?`)) return;
+
+  try {
+    // Step 1: Get all channels
+    const resChannels = await fetch(`${scriptUrl}?operation=getAllChannels`);
+    const { channels } = await resChannels.json();
+
+    let authorisedAny = false;
+
+    // Step 2: Authorise user in EVERY existing channel
+    if (channels?.length > 0) {
+      for (const ch of channels) {
+        await fetch(scriptUrl, {
+          method: 'POST',
+          body: JSON.stringify({
+            operation: 'authoriseForChannel',
+            username: username,
+            channelId: ch.id
+          })
+        });
+      }
+      authorisedAny = true;
+    } else {
+      // Step 3: No channels exist → create a default personal channel for this user
+      const resCreate = await fetch(scriptUrl, {
+        method: 'POST',
+        body: JSON.stringify({
+          operation: 'createChannel',
+          creator: username,
+          name: `${username}'s Space`,
+          description: `Personal channel for ${username}`
+        })
+      });
+      const createData = await resCreate.json();
+
+      if (createData.status === 'success') {
+        // Authorise the user in their new channel
+        await fetch(scriptUrl, {
+          method: 'POST',
+          body: JSON.stringify({
+            operation: 'authoriseForChannel',
+            username: username,
+            channelId: createData.channelId
+          })
+        });
+        authorisedAny = true;
+        showToast(`Created and authorised ${username}'s personal channel!`, 'success');
+      }
+    }
+
+    if (authorisedAny) {
+      alert(`${username} is now authorised to post.`);
+    } else {
+      alert("No channels exist and creation failed.");
+    }
+  } catch(e) {
+    alert('Network error – try again');
+    console.error(e);
+  }
+}
 async function updateUserStatus(targetName, newStatus) {
   if (!confirm(`Are you sure you want to set ${targetName} to ${newStatus}?`)) return;
 
